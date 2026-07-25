@@ -72,52 +72,58 @@ export function QuickGenerateModal({ open, onClose, onCreated }: QuickGenerateMo
   };
 
   return (
-    <div className="fixed inset-0 bg-solaris-900/60 dark:bg-solaris-50/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-solaris-900 rounded-2xl shadow-2xl max-w-md w-full">
-        <div className="px-6 py-5 border-b border-solaris-100 dark:border-solaris-800 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-5 dark:border-zinc-800">
           <div>
-            <h2 className="text-lg font-bold text-solaris-900 dark:text-solaris-50">Quick Generate</h2>
-            <p className="text-sm text-solaris-500 dark:text-solaris-400 mt-0.5">Generate a random alias instantly</p>
+            <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">Quick Generate</h2>
+            <p className="mt-0.5 text-sm text-zinc-500">Generate a random alias instantly</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-solaris-400 dark:text-solaris-500 hover:text-solaris-600 dark:hover:text-solaris-400 hover:bg-solaris-100 dark:hover:bg-solaris-700 rounded-lg transition-colors"
+            className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="p-6 space-y-5">
+
+        <div className="space-y-5 p-6">
           {error && (
-            <div className="px-4 py-3 bg-solaris-red-50 dark:bg-solaris-red-900/30 border border-solaris-red-200 dark:border-solaris-red-800 rounded-xl text-sm text-solaris-red-500 dark:text-solaris-red-200">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">
               {error}
             </div>
           )}
-          <div className="bg-solaris-50 dark:bg-solaris-950 rounded-xl p-6 text-center border border-solaris-200 dark:border-solaris-800">
-            <div className="text-xs font-semibold text-solaris-500 dark:text-solaris-400 uppercase tracking-wider mb-3">
+
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-6 text-center dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
               Generated Alias
             </div>
-            <div className="text-xl font-mono font-semibold text-solaris-900 dark:text-solaris-50 mb-1">
+            <div className="mb-1 font-mono text-xl font-medium text-zinc-900 dark:text-zinc-100">
               {generated || "—"}
             </div>
-            <div className="text-xs text-solaris-400 dark:text-solaris-500">Random unique identifier</div>
+            <div className="text-xs text-zinc-400">Random unique identifier</div>
           </div>
+
           <div>
-            <label className="block text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-2">Domain</label>
+            <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Domain
+            </label>
             <select
               value={domain}
               onChange={(e) => {
                 setDomain(e.target.value);
                 setGenerated("");
               }}
-              className="w-full px-4 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-xl text-sm text-solaris-700 dark:text-solaris-300 focus:ring-2 focus:ring-solaris-blue-400 outline-none"
-              >
-                {domains.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
+              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+            >
+              {domains.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
           </div>
+
           <div>
-            <label className="block text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-2">
+            <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Service Name (optional)
             </label>
             <input
@@ -125,22 +131,23 @@ export function QuickGenerateModal({ open, onClose, onCreated }: QuickGenerateMo
               value={serviceName}
               onChange={(e) => setServiceName(e.target.value)}
               placeholder="e.g. Shopping, Newsletter..."
-              className="w-full px-4 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-xl focus:ring-2 focus:ring-solaris-blue-400 outline-none text-sm"
+              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
         </div>
-        <div className="px-6 py-5 border-t border-solaris-100 dark:border-solaris-800 bg-solaris-50 dark:bg-solaris-950 rounded-b-2xl flex justify-end gap-3">
+
+        <div className="flex justify-end gap-3 border-t border-zinc-100 bg-zinc-50/50 px-6 py-5 dark:border-zinc-800 dark:bg-zinc-950/50">
           <button
             onClick={doGenerate}
-            className="px-5 py-2.5 text-sm font-medium text-solaris-600 dark:text-solaris-400 hover:bg-solaris-200 dark:hover:bg-solaris-700 rounded-xl transition-colors flex items-center gap-2"
+            className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-5 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="h-4 w-4" />
             Regenerate
           </button>
           <button
             onClick={handleCreate}
             disabled={submitting || !generated}
-            className="px-5 py-2.5 bg-solaris-blue-500 dark:bg-solaris-blue-400 text-white text-sm font-medium rounded-xl hover:bg-solaris-blue-600 transition-all shadow-lg shadow-solaris-blue-400/25 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
           >
             {submitting ? "Creating..." : "Create This Alias"}
           </button>

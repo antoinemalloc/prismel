@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Routes, Route, NavLink, useLocation } from "react-router-dom";
+import {
+  Mail,
+  RefreshCw,
+  Settings,
+  LifeBuoy,
+  HardDrive,
+  User,
+  Menu,
+  X,
+} from "lucide-react";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { AliasListPage } from "./features/aliases/components/AliasListPage";
 import { SyncPage } from "./features/aliases/components/SyncPage";
@@ -7,60 +17,178 @@ import { SettingsPage } from "./features/settings/SettingsPage";
 import { SyncProvider } from "./features/aliases/SyncContext";
 import { AboutModal } from "./features/about/AboutModal";
 
-function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
+function SidebarNavLink({
+  to,
+  icon,
+  label,
+  onClick,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+}) {
   const location = useLocation();
-  const isActive = location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
+  const isActive =
+    location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
+
   return (
-    <Link
+    <NavLink
       to={to}
-      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+      onClick={onClick}
+      aria-current={isActive ? "page" : undefined}
+      className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150 md:justify-center lg:justify-start ${
         isActive
-          ? "text-solaris-blue-600 dark:text-solaris-blue-200 bg-solaris-blue-50 dark:bg-solaris-blue-900/40"
-          : "text-solaris-600 dark:text-solaris-400 hover:text-solaris-900 dark:hover:text-solaris-50 hover:bg-solaris-200 dark:hover:bg-solaris-800"
+          ? "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+          : "text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
       }`}
     >
-      {children}
-    </Link>
+      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
+        {icon}
+      </span>
+      <span className="hidden lg:inline">{label}</span>
+    </NavLink>
   );
 }
 
 export function App() {
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const closeMobile = () => setMobileOpen(false);
+
   return (
-    <div className="min-h-screen bg-solaris-50 dark:bg-solaris-950 text-solaris-900 dark:text-solaris-50">
-      <header className="bg-white dark:bg-solaris-900 border-b border-solaris-200 dark:border-solaris-800 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/icon.png" alt="Prismel" className="w-16 h-16" />
-            <span className="text-xl font-bold tracking-tight text-solaris-900 dark:text-solaris-50">Prismel</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
-            <NavLink to="/">Aliases</NavLink>
-            <NavLink to="/sync">Sync</NavLink>
-            <NavLink to="/settings">Settings</NavLink>
+    <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+      {/* Mobile top bar */}
+      <div className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-zinc-200 bg-zinc-50/80 px-4 backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/80">
+        <div className="flex items-center gap-2.5">
+          <img src="/icon.png" alt="Prismel" className="h-7 w-7 rounded-md" />
+          <span className="text-lg font-medium tracking-tight">Prismel</span>
+        </div>
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="rounded-lg p-2 text-zinc-600 transition-colors hover:bg-zinc-200 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-zinc-900/20 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed left-0 top-0 z-50 h-screen w-64 border-r border-zinc-200 bg-zinc-100/50 transition-transform duration-200 ease-out md:translate-x-0 md:w-20 lg:w-64 dark:border-zinc-800 dark:bg-zinc-900 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex h-14 items-center gap-3 border-b border-zinc-200 px-4 lg:h-16 dark:border-zinc-800">
+            <img
+              src="/icon.png"
+              alt="Prismel"
+              className="h-8 w-8 rounded-md"
+            />
+            <span className="hidden text-lg font-medium tracking-tight lg:block">
+              Prismel
+            </span>
             <button
-              onClick={() => setAboutOpen(true)}
-              className="px-3 py-1.5 text-sm font-medium text-solaris-500 dark:text-solaris-400 hover:text-solaris-700 dark:hover:text-solaris-200 hover:bg-solaris-100 dark:hover:bg-solaris-800 rounded-lg transition-colors"
+              onClick={() => setMobileOpen(false)}
+              className="ml-auto rounded-lg p-2 text-zinc-500 hover:bg-zinc-200 md:hidden dark:text-zinc-400 dark:hover:bg-zinc-800"
+              aria-label="Close menu"
             >
-              About
+              <X className="h-5 w-5" />
             </button>
+          </div>
+
+          <nav className="flex-1 space-y-1 px-3 py-4">
+            <SidebarNavLink
+              to="/"
+              icon={<Mail className="h-5 w-5" />}
+              label="Aliases"
+              onClick={closeMobile}
+            />
+            <SidebarNavLink
+              to="/sync"
+              icon={<RefreshCw className="h-5 w-5" />}
+              label="Sync"
+              onClick={closeMobile}
+            />
+            <SidebarNavLink
+              to="/settings"
+              icon={<Settings className="h-5 w-5" />}
+              label="Settings"
+              onClick={closeMobile}
+            />
           </nav>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
+
+          <div className="space-y-1 border-t border-zinc-200 px-3 py-4 dark:border-zinc-800">
+            <button
+              onClick={() => {
+                setAboutOpen(true);
+                closeMobile();
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-500 transition-colors duration-150 hover:bg-zinc-200/50 hover:text-zinc-900 md:justify-center lg:justify-start dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
+            >
+              <LifeBuoy className="h-5 w-5 flex-shrink-0" />
+              <span className="hidden lg:inline">Help</span>
+            </button>
+            <SidebarNavLink
+              to="/settings"
+              icon={<Settings className="h-5 w-5" />}
+              label="Settings"
+              onClick={closeMobile}
+            />
+
+            <div className="hidden rounded-lg border border-zinc-200 bg-white p-3 lg:block dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="mb-2 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                <HardDrive className="h-4 w-4" />
+                <span className="font-medium">Storage</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
+                <div className="h-full w-0 rounded-full bg-zinc-900 dark:bg-zinc-100" />
+              </div>
+              <div className="mt-1 text-xs text-zinc-400">0% used</div>
+            </div>
+
+            <div className="hidden items-center gap-3 px-3 py-3 lg:flex">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                <User className="h-4 w-4" />
+              </div>
+              <div className="text-sm">
+                <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                  Admin
+                </div>
+                <div className="text-xs text-zinc-500">admin@prismel</div>
+              </div>
+            </div>
+
+            <div className="pt-1">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
-      </header>
+      </aside>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <SyncProvider>
-          <Routes>
-            <Route path="/" element={<AliasListPage />} />
-            <Route path="/aliases" element={<AliasListPage />} />
-            <Route path="/sync" element={<SyncPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </SyncProvider>
+      <main className="min-h-screen p-4 pt-14 md:pl-20 md:pt-0 lg:pl-64 lg:p-8">
+        <div className="mx-auto max-w-7xl animate-fade-in">
+          <SyncProvider>
+            <Routes>
+              <Route path="/" element={<AliasListPage />} />
+              <Route path="/aliases" element={<AliasListPage />} />
+              <Route path="/sync" element={<SyncPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </SyncProvider>
+        </div>
       </main>
+
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} />
     </div>
   );

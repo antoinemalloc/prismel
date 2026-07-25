@@ -35,7 +35,6 @@ export function SyncPage() {
     fetchAliases();
   }, []);
 
-  // Refresh alias count when sync completes
   useEffect(() => {
     if (result) {
       fetchAliases();
@@ -49,76 +48,79 @@ export function SyncPage() {
   }, [logs]);
 
   return (
-    <div>
-      {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-solaris-900 dark:text-solaris-50">Sync Aliases</h1>
-        <p className="text-sm text-solaris-500 dark:text-solaris-400 mt-1">Synchronize with configured providers</p>
+    <div className="animate-fade-in">
+      {/* Header */}
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <h1 className="text-2xl font-medium tracking-tight text-zinc-900 dark:text-zinc-100">
+            Sync
+          </h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            Synchronize with configured providers
+          </p>
+        </div>
+        <button
+          onClick={startSync}
+          disabled={syncing}
+          className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+        >
+          {syncing ? (
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
+          {syncing ? "Syncing..." : "Sync Now"}
+        </button>
       </div>
 
-      {/* Stats Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <div className="bg-white dark:bg-solaris-900 p-5 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-solaris-blue-50 dark:bg-solaris-blue-900/30 rounded-xl flex items-center justify-center">
-            <Database className="w-6 h-6 text-solaris-blue-500 dark:text-solaris-blue-300" />
+      {/* Stats */}
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
+            <Database className="h-6 w-6" />
           </div>
           <div>
-            <div className="text-xs font-semibold text-solaris-500 dark:text-solaris-400 uppercase tracking-wider">Local Aliases</div>
-            <div className="text-2xl font-bold text-solaris-900 dark:text-solaris-50 mt-0.5">
+            <div className="text-xs font-medium text-zinc-500">Local Aliases</div>
+            <div className="mt-0.5 text-2xl font-medium text-zinc-900 dark:text-zinc-100">
               {loading ? "—" : aliases.length}
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-solaris-900 p-5 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-solaris-green-50 dark:bg-solaris-green-900/30 rounded-xl flex items-center justify-center">
-            <Mail className="w-6 h-6 text-solaris-green-400 dark:text-solaris-green-200" />
+        <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+            <Mail className="h-6 w-6" />
           </div>
           <div>
-            <div className="text-xs font-semibold text-solaris-500 dark:text-solaris-400 uppercase tracking-wider">Provider</div>
-            <div className="text-2xl font-bold text-solaris-900 dark:text-solaris-50 mt-0.5">—</div>
+            <div className="text-xs font-medium text-zinc-500">Provider</div>
+            <div className="mt-0.5 text-2xl font-medium text-zinc-900 dark:text-zinc-100">
+              —
+            </div>
           </div>
         </div>
       </div>
 
       {/* Info Card */}
-      <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-6 mb-8">
-        <h3 className="text-sm font-semibold text-solaris-900 dark:text-solaris-50 mb-2">What does sync do?</h3>
-        <p className="text-sm text-solaris-500 dark:text-solaris-400 leading-relaxed">
+      <div className="mb-6 rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <h3 className="mb-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          What does sync do?
+        </h3>
+        <p className="text-sm leading-relaxed text-zinc-500">
           Sync pulls all email aliases from your configured providers and imports them into Prismel.
           New aliases are added, existing ones are updated, and any local discrepancies are resolved.
           This ensures your local database stays in perfect sync with your providers.
         </p>
       </div>
 
-      {/* Sync Button */}
-      <div className="flex items-center justify-center mb-8">
-        <button
-          onClick={startSync}
-          disabled={syncing}
-          className="px-8 py-4 bg-solaris-blue-500 dark:bg-solaris-blue-400 text-white rounded-xl text-base font-semibold hover:bg-solaris-blue-600 transition-all shadow-lg shadow-solaris-blue-400/25 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-3"
-        >
-          {syncing ? (
-            <>
-              <RefreshCw className="w-5 h-5 animate-spin" />
-              Syncing...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-5 h-5" />
-              Sync Now
-            </>
-          )}
-        </button>
-      </div>
-
       {/* Error State */}
       {(error || fetchError) && (
-        <div className="bg-solaris-red-50 dark:bg-solaris-red-900/30 border border-solaris-red-200 dark:border-solaris-red-800 rounded-xl p-5 mb-8">
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-900/40 dark:bg-red-950/30">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-solaris-red-400 dark:text-solaris-red-200 mt-0.5 flex-shrink-0" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-300" />
             <div>
-              <p className="text-sm font-semibold text-solaris-red-600">Error</p>
-              <p className="text-sm text-solaris-red-500 dark:text-solaris-red-200 mt-1">{error || fetchError}</p>
+              <p className="text-sm font-medium text-red-700 dark:text-red-200">Error</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-300">
+                {error || fetchError}
+              </p>
             </div>
           </div>
         </div>
@@ -126,57 +128,66 @@ export function SyncPage() {
 
       {/* Result Cards */}
       {result && (
-        <div className="space-y-4 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <CheckCircle2 className="w-5 h-5 text-solaris-green-400 dark:text-solaris-green-200" />
-            <span className="text-sm font-semibold text-solaris-900 dark:text-solaris-50">Sync complete</span>
-            <span className="text-sm text-solaris-500 dark:text-solaris-400">{result.total} total aliases</span>
+        <div className="mb-6 space-y-4">
+          <div className="mb-3 flex items-center gap-2">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              Sync complete
+            </span>
+            <span className="text-sm text-zinc-500">{result.total} total aliases</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-solaris-green-50 dark:bg-solaris-green-900/30 rounded-lg flex items-center justify-center">
-                  <Plus className="w-5 h-5 text-solaris-green-400 dark:text-solaris-green-200" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+                  <Plus className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-medium text-solaris-600 dark:text-solaris-400">New imported</span>
+                <span className="text-sm font-medium text-zinc-500">New imported</span>
               </div>
-              <div className="text-3xl font-bold text-solaris-green-400 dark:text-solaris-green-200">{result.new}</div>
+              <div className="text-3xl font-medium text-emerald-700 dark:text-emerald-300">
+                {result.new}
+              </div>
             </div>
-            <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-solaris-yellow-50 dark:bg-solaris-yellow-900/30 rounded-lg flex items-center justify-center">
-                  <RefreshCw className="w-5 h-5 text-solaris-yellow-500 dark:text-solaris-yellow-200" />
+            <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+                  <RefreshCw className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-medium text-solaris-600 dark:text-solaris-400">Updated</span>
+                <span className="text-sm font-medium text-zinc-500">Updated</span>
               </div>
-              <div className="text-3xl font-bold text-solaris-yellow-500 dark:text-solaris-yellow-200">{result.updated}</div>
+              <div className="text-3xl font-medium text-amber-700 dark:text-amber-300">
+                {result.updated}
+              </div>
             </div>
-            <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-solaris-blue-50 dark:bg-solaris-blue-900/30 rounded-lg flex items-center justify-center">
-                  <Database className="w-5 h-5 text-solaris-blue-500 dark:text-solaris-blue-300" />
+            <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
+                  <Database className="h-5 w-5" />
                 </div>
-                <span className="text-sm font-medium text-solaris-600 dark:text-solaris-400">Total synced</span>
+                <span className="text-sm font-medium text-zinc-500">Total synced</span>
               </div>
-              <div className="text-3xl font-bold text-solaris-blue-500 dark:text-solaris-blue-300">{result.total}</div>
+              <div className="text-3xl font-medium text-blue-700 dark:text-blue-300">
+                {result.total}
+              </div>
             </div>
           </div>
 
           {result.errors.length > 0 && (
-            <div className="bg-solaris-red-50 dark:bg-solaris-red-900/30 border border-solaris-red-200 dark:border-solaris-red-800 rounded-xl p-5">
-              <div className="flex items-start gap-3 mb-3">
-                <AlertTriangle className="w-5 h-5 text-solaris-red-400 dark:text-solaris-red-200 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-solaris-red-600">
-                    {result.errors.length} error{result.errors.length > 1 ? "s" : ""} during sync
-                  </p>
-                </div>
+            <div className="rounded-xl border border-red-200 bg-red-50 p-5 dark:border-red-900/40 dark:bg-red-950/30">
+              <div className="mb-3 flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-300" />
+                <p className="text-sm font-medium text-red-700 dark:text-red-200">
+                  {result.errors.length} error{result.errors.length > 1 ? "s" : ""} during sync
+                </p>
               </div>
-              <ul className="space-y-2 mt-2">
+              <ul className="mt-2 space-y-2">
                 {result.errors.map((err, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-solaris-red-500 dark:text-solaris-red-200 bg-solaris-red-100/50 dark:bg-solaris-red-800/30 rounded-lg px-3 py-2">
-                    <ArrowRight className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                  <li
+                    key={i}
+                    className="flex items-start gap-2 rounded-lg bg-red-100/50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-200"
+                  >
+                    <ArrowRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
                     {err}
                   </li>
                 ))}
@@ -188,23 +199,23 @@ export function SyncPage() {
 
       {/* Live Sync Log */}
       {(syncing || logs.length > 0) && (
-        <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <Terminal className="w-4 h-4 text-solaris-500 dark:text-solaris-400" />
-            <h3 className="text-sm font-semibold text-solaris-900 dark:text-solaris-50">Sync Log</h3>
+        <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="mb-3 flex items-center gap-2">
+            <Terminal className="h-4 w-4 text-zinc-500" />
+            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Sync Log</h3>
             {syncing && (
-              <span className="text-xs text-solaris-400 dark:text-solaris-500 ml-auto">Streaming...</span>
+              <span className="ml-auto text-xs text-zinc-400">Streaming...</span>
             )}
           </div>
           <div
             ref={logsRef}
-            className="bg-solaris-900 dark:bg-solaris-50 text-solaris-300 dark:text-solaris-600 rounded-lg p-4 font-mono text-xs max-h-80 overflow-y-auto"
+            className="max-h-80 overflow-y-auto rounded-lg bg-zinc-900 p-4 font-mono text-xs text-zinc-300 dark:bg-zinc-950 dark:text-zinc-400"
           >
             {logs.length === 0 ? (
-              <span className="text-solaris-500 dark:text-solaris-400 italic">Waiting for sync to start...</span>
+              <span className="italic text-zinc-500">Waiting for sync to start...</span>
             ) : (
               logs.map((line, i) => (
-                <div key={i} className="leading-relaxed break-words">
+                <div key={i} className="break-words leading-relaxed">
                   {line}
                 </div>
               ))

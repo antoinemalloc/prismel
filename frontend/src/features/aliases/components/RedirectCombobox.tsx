@@ -83,7 +83,7 @@ export function RedirectCombobox({ value, onChange, targets, placeholder }: Redi
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
-          className="w-full px-4 pr-10 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-xl focus:ring-2 focus:ring-solaris-blue-400 focus:border-solaris-blue-400 outline-none text-sm transition-all"
+          className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 pr-10 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
           onKeyDown={handleKeyDown}
         />
         <button
@@ -93,13 +93,13 @@ export function RedirectCombobox({ value, onChange, targets, placeholder }: Redi
             setOpen((prev) => !prev);
             inputRef.current?.focus();
           }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-solaris-400 dark:text-solaris-500 hover:text-solaris-600 dark:hover:text-solaris-400 rounded"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
         >
-          <ChevronDown className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} />
+          <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
       </div>
       {open && filtered.length > 0 && (
-        <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-solaris-900 border border-solaris-200 dark:border-solaris-800 rounded-xl shadow-lg max-h-48 overflow-y-auto py-1">
+        <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           {filtered.map((target, i) => (
             <li
               key={target}
@@ -108,10 +108,10 @@ export function RedirectCombobox({ value, onChange, targets, placeholder }: Redi
                 select(target);
               }}
               onMouseEnter={() => setHighlighted(i)}
-              className={`px-4 py-2 text-sm cursor-pointer font-mono ${
+              className={`cursor-pointer px-4 py-2 text-sm font-mono ${
                 i === highlighted
-                  ? "bg-solaris-blue-50 dark:bg-solaris-blue-900/30 text-solaris-blue-600 dark:text-solaris-blue-200"
-                  : "text-solaris-700 dark:text-solaris-300 hover:bg-solaris-200 dark:hover:bg-solaris-800"
+                  ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800/50"
               }`}
             >
               {target}

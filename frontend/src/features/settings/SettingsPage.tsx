@@ -131,9 +131,9 @@ export function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="py-12 text-center">
-        <div className="inline-flex items-center gap-2 text-solaris-500 dark:text-solaris-400">
-          <Loader2 className="w-5 h-5 animate-spin" />
+      <div className="flex h-64 items-center justify-center">
+        <div className="inline-flex items-center gap-2 text-sm text-zinc-500">
+          <Loader2 className="h-5 w-5 animate-spin" />
           Loading settings...
         </div>
       </div>
@@ -143,43 +143,67 @@ export function SettingsPage() {
   const SelectedForm = selectedProvider ? getProviderForm(selectedProvider) : null;
 
   return (
-    <div className="max-w-5xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-solaris-900 dark:text-solaris-50">Settings</h1>
-        <p className="text-sm text-solaris-500 dark:text-solaris-400 mt-1">Manage domains, providers and redirect targets</p>
+    <div className="animate-fade-in max-w-5xl">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <h1 className="text-2xl font-medium tracking-tight text-zinc-900 dark:text-zinc-100">
+            Settings
+          </h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            Manage domains, providers and redirect targets
+          </p>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+        >
+          {saving ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="h-4 w-4" />
+          )}
+          {saving ? "Saving..." : "Save Settings"}
+        </button>
       </div>
 
       {message && (
         <div
-          className={`rounded-xl p-4 mb-6 flex items-start gap-3 ${
+          className={`mb-6 flex items-start gap-3 rounded-xl p-4 ${
             message.type === "success"
-              ? "bg-solaris-green-50 dark:bg-solaris-green-900/30 border border-solaris-green-200 dark:border-solaris-green-800"
-              : "bg-solaris-red-50 dark:bg-solaris-red-900/30 border border-solaris-red-200 dark:border-solaris-red-800"
+              ? "border border-emerald-200 bg-emerald-50 dark:border-emerald-900/40 dark:bg-emerald-950/30"
+              : "border border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/30"
           }`}
         >
           {message.type === "success" ? (
-            <CheckCircle2 className="w-5 h-5 text-solaris-green-400 dark:text-solaris-green-200 mt-0.5 flex-shrink-0" />
+            <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
           ) : (
-            <AlertTriangle className="w-5 h-5 text-solaris-red-400 dark:text-solaris-red-200 mt-0.5 flex-shrink-0" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-300" />
           )}
-          <p className={`text-sm font-medium ${message.type === "success" ? "text-solaris-green-600" : "text-solaris-red-600"}`}>
+          <p
+            className={`text-sm font-medium ${
+              message.type === "success"
+                ? "text-emerald-700 dark:text-emerald-200"
+                : "text-red-700 dark:text-red-200"
+            }`}
+          >
             {message.text}
           </p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left Column */}
         <div className="space-y-6">
           {/* Domains */}
-          <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-solaris-100 dark:border-solaris-800">
-              <div className="w-10 h-10 bg-solaris-blue-50 dark:bg-solaris-blue-900/30 rounded-lg flex items-center justify-center">
-                <Globe className="w-5 h-5 text-solaris-blue-500 dark:text-solaris-blue-300" />
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
+                <Globe className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-solaris-900 dark:text-solaris-50">Domains</h2>
-                <p className="text-xs text-solaris-500 dark:text-solaris-400">Map each domain to its email provider</p>
+                <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">Domains</h2>
+                <p className="text-xs text-zinc-500">Map each domain to its email provider</p>
               </div>
             </div>
             <div className="mt-4 space-y-2">
@@ -194,7 +218,7 @@ export function SettingsPage() {
                       setDomainPairs(next);
                     }}
                     placeholder="domain.com"
-                    className="flex-1 px-3 py-2 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-lg focus:ring-2 focus:ring-solaris-blue-400 focus:border-solaris-blue-400 outline-none text-sm transition-all"
+                    className="flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                   />
                   <select
                     value={pair.provider}
@@ -203,7 +227,7 @@ export function SettingsPage() {
                       next[i] = { ...next[i], provider: e.target.value };
                       setDomainPairs(next);
                     }}
-                    className="w-32 px-3 py-2 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-lg text-sm text-solaris-700 dark:text-solaris-300 focus:ring-2 focus:ring-solaris-blue-400 outline-none"
+                    className="w-32 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                   >
                     <option value="">—</option>
                     {providerList.map((p) => (
@@ -213,9 +237,9 @@ export function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setDomainPairs(domainPairs.filter((_, j) => j !== i))}
-                    className="p-2 text-solaris-400 dark:text-solaris-500 hover:text-solaris-red-400 rounded-lg transition-colors"
+                    className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-red-600 dark:text-zinc-500 dark:hover:bg-zinc-800"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               ))}
@@ -223,31 +247,31 @@ export function SettingsPage() {
             <button
               type="button"
               onClick={() => setDomainPairs([...domainPairs, { domain: "", provider: "" }])}
-              className="mt-3 px-3 py-1.5 text-xs font-medium text-solaris-blue-500 dark:text-solaris-blue-300 hover:bg-solaris-blue-50 dark:hover:bg-solaris-blue-900/30 rounded-lg transition-colors flex items-center gap-1"
+              className="mt-3 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-950/30"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="h-3.5 w-3.5" />
               Add Domain
             </button>
           </div>
 
           {/* Providers */}
-          <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-solaris-100 dark:border-solaris-800">
-              <div className="w-10 h-10 bg-solaris-blue-50 dark:bg-solaris-blue-900/30 rounded-lg flex items-center justify-center">
-                <Server className="w-5 h-5 text-solaris-blue-500 dark:text-solaris-blue-300" />
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                <Server className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-solaris-900 dark:text-solaris-50">Providers</h2>
-                <p className="text-xs text-solaris-500 dark:text-solaris-400">Configure API credentials per provider</p>
+                <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">Providers</h2>
+                <p className="text-xs text-zinc-500">Configure API credentials per provider</p>
               </div>
             </div>
 
             <div className="mt-4">
-              <label className="block text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-2">Provider</label>
+              <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Provider</label>
               <select
                 value={selectedProvider}
                 onChange={(e) => { setSelectedProvider(e.target.value); setTestResult(null); }}
-                className="w-full px-4 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-xl text-sm text-solaris-700 dark:text-solaris-300 focus:ring-2 focus:ring-solaris-blue-400 outline-none"
+                className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
               >
                 <option value="">Select a provider</option>
                 {providerList.map((p) => (
@@ -264,30 +288,26 @@ export function SettingsPage() {
                   type="button"
                   onClick={handleTestConnection}
                   disabled={testing}
-                  className="px-4 py-2 text-sm font-medium text-solaris-blue-600 dark:text-solaris-blue-300 border border-solaris-blue-300 dark:border-solaris-blue-700 rounded-lg hover:bg-solaris-blue-50 dark:hover:bg-solaris-blue-900/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   {testing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Testing...
-                    </>
-                  ) : (
-                    "Test Connection"
-                  )}
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : null}
+                  Test Connection
                 </button>
               </div>
             )}
 
             {testResult && (
-              <div className={`mt-2 rounded-lg p-3 flex items-start gap-2 text-sm ${
+              <div className={`mt-3 flex items-start gap-2 rounded-lg p-3 text-sm ${
                 testResult.type === "success"
-                  ? "bg-solaris-green-50 dark:bg-solaris-green-900/30 border border-solaris-green-200 dark:border-solaris-green-800 text-solaris-green-600 dark:text-solaris-green-200"
-                  : "bg-solaris-red-50 dark:bg-solaris-red-900/30 border border-solaris-red-200 dark:border-solaris-red-800 text-solaris-red-600 dark:text-solaris-red-200"
+                  ? "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-200"
+                  : "border border-red-200 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200"
               }`}>
                 {testResult.type === "success" ? (
-                  <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 ) : (
-                  <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 )}
                 <span>{testResult.text}</span>
               </div>
@@ -295,7 +315,7 @@ export function SettingsPage() {
 
             {selectedProvider && !SelectedForm && (
               <div className="mt-4">
-                <p className="text-sm text-solaris-400 dark:text-solaris-500 italic">{selectedProvider} credentials — coming soon</p>
+                <p className="text-sm italic text-zinc-400">{selectedProvider} credentials — coming soon</p>
               </div>
             )}
           </div>
@@ -303,18 +323,18 @@ export function SettingsPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full px-6 py-3 bg-solaris-blue-500 dark:bg-solaris-blue-400 text-white rounded-xl text-sm font-semibold hover:bg-solaris-blue-600 transition-all shadow-lg shadow-solaris-blue-400/25 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full rounded-lg bg-zinc-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
           >
             {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="inline-flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Saving...
-              </>
+              </span>
             ) : (
-              <>
-                <Save className="w-4 h-4" />
+              <span className="inline-flex items-center justify-center gap-2">
+                <Save className="h-4 w-4" />
                 Save Settings
-              </>
+              </span>
             )}
           </button>
         </div>
@@ -322,35 +342,35 @@ export function SettingsPage() {
         {/* Right Column */}
         <div className="space-y-6">
           {/* UI */}
-          <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-solaris-100 dark:border-solaris-800">
-              <div className="w-10 h-10 bg-solaris-violet-50 dark:bg-solaris-violet-900/30 rounded-lg flex items-center justify-center">
-                <Palette className="w-5 h-5 text-solaris-violet-500 dark:text-solaris-violet-300" />
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300">
+                <Palette className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-solaris-900 dark:text-solaris-50">UI</h2>
-                <p className="text-xs text-solaris-500 dark:text-solaris-400">Appearance and theme</p>
+                <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">UI</h2>
+                <p className="text-xs text-zinc-500">Appearance and theme</p>
               </div>
             </div>
             <div className="mt-4">
-              <h3 className="text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-3">Thème</h3>
+              <h3 className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">Theme</h3>
               <ThemePicker />
             </div>
           </div>
 
           {/* Redirect Targets */}
-          <div className="bg-white dark:bg-solaris-900 rounded-xl border border-solaris-200 dark:border-solaris-800 shadow-sm p-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-solaris-100 dark:border-solaris-800">
-              <div className="w-10 h-10 bg-solaris-blue-50 dark:bg-solaris-blue-900/30 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-solaris-blue-500 dark:text-solaris-blue-300" />
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
+                <Mail className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-solaris-900 dark:text-solaris-50">Redirect Targets</h2>
-                <p className="text-xs text-solaris-500 dark:text-solaris-400">Suggested destinations when creating aliases</p>
+                <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">Redirect Targets</h2>
+                <p className="text-xs text-zinc-500">Suggested destinations when creating aliases</p>
               </div>
             </div>
             <div className="mt-4">
-              <p className="text-xs text-solaris-500 dark:text-solaris-400 mb-3">
+              <p className="mb-3 text-xs text-zinc-500">
                 One email address per line. These appear as suggestions in the redirect field.
               </p>
               <textarea
@@ -358,7 +378,7 @@ export function SettingsPage() {
                 onChange={(e) => setRedirectTargets(e.target.value)}
                 placeholder={"user@example.com\nother@domain.com"}
                 rows={10}
-                className="w-full px-4 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-xl focus:ring-2 focus:ring-solaris-blue-400 focus:border-solaris-blue-400 outline-none text-sm transition-all resize-y font-mono"
+                className="w-full resize-y rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-mono text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
               />
             </div>
           </div>

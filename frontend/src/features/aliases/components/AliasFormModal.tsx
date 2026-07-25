@@ -34,7 +34,6 @@ export function AliasFormModal({
   const [redirectTargets, setRedirectTargets] = useState<string[]>([]);
   const [domains, setDomains] = useState<string[]>([]);
 
-  // Initialize form when opening in edit mode
   useEffect(() => {
     if (mode === "edit" && alias) {
       setServiceName(alias.serviceName || "");
@@ -44,7 +43,6 @@ export function AliasFormModal({
     }
   }, [mode, alias]);
 
-  // Fetch settings on open
   useEffect(() => {
     if (open) {
       setError(null);
@@ -138,39 +136,48 @@ export function AliasFormModal({
 
   const title = isEdit ? "Edit Alias" : "Create New Alias";
   const subtitle = isEdit ? "Update alias metadata" : "Add a new email alias to your account";
-  const submitLabel = isEdit ? (submitting ? "Saving..." : "Save Changes") : (submitting ? "Creating..." : "Create Alias");
+  const submitLabel = isEdit
+    ? submitting
+      ? "Saving..."
+      : "Save Changes"
+    : submitting
+    ? "Creating..."
+    : "Create Alias";
 
   return (
     <div
-      className={`fixed inset-0 bg-solaris-900/60 dark:bg-solaris-50/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 p-4 backdrop-blur-sm ${
         visible ? "" : "hidden"
       }`}
     >
-      <div className="bg-white dark:bg-solaris-900 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-5 border-b border-solaris-100 dark:border-solaris-800 flex items-center justify-between">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-5 dark:border-zinc-800">
           <div>
-            <h2 className="text-lg font-bold text-solaris-900 dark:text-solaris-50">{title}</h2>
-            <p className="text-sm text-solaris-500 dark:text-solaris-400 mt-0.5">{subtitle}</p>
+            <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">{title}</h2>
+            <p className="mt-0.5 text-sm text-zinc-500">{subtitle}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-solaris-400 dark:text-solaris-500 hover:text-solaris-600 dark:hover:text-solaris-400 hover:bg-solaris-100 dark:hover:bg-solaris-700 rounded-lg transition-colors"
+            className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-5" autoComplete="off">
+
+        <form onSubmit={handleSubmit} className="space-y-5 p-6" autoComplete="off">
           {error && (
-            <div className="px-4 py-3 bg-solaris-red-50 dark:bg-solaris-red-900/30 border border-solaris-red-200 dark:border-solaris-red-800 rounded-xl text-sm text-solaris-red-500 dark:text-solaris-red-200">
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200">
               {error}
             </div>
           )}
 
           {/* Email Address */}
           <div>
-            <label className="block text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-2">Email Address</label>
+            <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Email Address
+            </label>
             {isEdit ? (
-              <div className="px-4 py-2.5 bg-solaris-100 dark:bg-solaris-800 border border-solaris-200 dark:border-solaris-800 rounded-xl text-sm text-solaris-600 dark:text-solaris-400 font-mono">
+              <div className="rounded-lg border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-sm font-mono text-zinc-600 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400">
                 {alias!.email}
               </div>
             ) : (
@@ -181,17 +188,15 @@ export function AliasFormModal({
                     value={prefix}
                     onChange={(e) => setPrefix(e.target.value)}
                     placeholder="alias-name"
-                    className="flex-1 px-4 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-l-xl focus:ring-2 focus:ring-solaris-blue-400 focus:border-solaris-blue-400 outline-none text-sm transition-all"
+                    className="flex-1 rounded-l-lg border border-r-0 border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                   />
                   <select
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
-                    className="px-4 py-2.5 border border-l-0 border-solaris-300 dark:border-solaris-700 rounded-r-xl bg-solaris-50 dark:bg-solaris-950 text-sm text-solaris-700 dark:text-solaris-300 focus:ring-2 focus:ring-solaris-blue-400 outline-none min-w-[140px]"
+                    className="min-w-[140px] rounded-r-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
                   >
                     {domains.map((d) => (
-                      <option key={d} value={d}>
-                        @{d}
-                      </option>
+                      <option key={d} value={d}>@{d}</option>
                     ))}
                   </select>
                 </div>
@@ -199,9 +204,9 @@ export function AliasFormModal({
                   type="button"
                   onClick={handleGenerate}
                   title="Generate"
-                  className="p-2.5 bg-solaris-100 dark:bg-solaris-800 text-solaris-600 dark:text-solaris-400 rounded-xl hover:bg-solaris-200 dark:hover:bg-solaris-700 transition-colors flex-shrink-0"
+                  className="rounded-lg border border-zinc-200 bg-zinc-100 p-2.5 text-zinc-600 transition-colors hover:bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="h-4 w-4" />
                 </button>
               </div>
             )}
@@ -209,7 +214,9 @@ export function AliasFormModal({
 
           {/* Redirect To */}
           <div>
-            <label className="block text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-2">Redirect To</label>
+            <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Redirect To
+            </label>
             <RedirectCombobox
               value={destination}
               onChange={setDestination}
@@ -218,52 +225,58 @@ export function AliasFormModal({
             />
           </div>
 
-          {/* Service Name + spacer (replaces old provider column) */}
+          {/* Service Name */}
           <div>
-            <label className="block text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-2">Service Name</label>
+            <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Service Name
+            </label>
             <input
               type="text"
               value={serviceName}
               onChange={(e) => setServiceName(e.target.value)}
               placeholder="e.g. Newsletter"
-              className="w-full px-4 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-xl focus:ring-2 focus:ring-solaris-blue-400 focus:border-solaris-blue-400 outline-none text-sm transition-all"
+              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-2">Description</label>
+            <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Description
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What is this alias for?"
               rows={2}
-              className="w-full px-4 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-xl focus:ring-2 focus:ring-solaris-blue-400 focus:border-solaris-blue-400 outline-none text-sm transition-all resize-none"
+              className="w-full resize-none rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-semibold text-solaris-700 dark:text-solaris-300 mb-2">Tags</label>
+            <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Tags
+            </label>
             <input
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="shopping, newsletter, work..."
-              className="w-full px-4 py-2.5 bg-solaris-50 dark:bg-solaris-950 border border-solaris-300 dark:border-solaris-700 rounded-xl focus:ring-2 focus:ring-solaris-blue-400 focus:border-solaris-blue-400 outline-none text-sm transition-all"
+              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
             />
-            <p className="text-xs text-solaris-400 dark:text-solaris-500 mt-1.5">Separate tags with commas</p>
+            <p className="mt-1.5 text-xs text-zinc-400">Separate tags with commas</p>
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-5 border-t border-solaris-100 dark:border-solaris-800 bg-solaris-50 dark:bg-solaris-950 rounded-b-2xl -mx-6 -mb-6 mt-6 flex justify-between gap-3">
+          <div className="-mx-6 -mb-6 mt-6 flex justify-between gap-3 border-t border-zinc-100 bg-zinc-50/50 px-6 py-5 dark:border-zinc-800 dark:bg-zinc-950/50">
             {isEdit && onDelete ? (
               <button
                 type="button"
                 onClick={onDelete}
-                className="px-4 py-2.5 text-sm font-medium text-solaris-red-400 dark:text-solaris-red-200 hover:bg-solaris-red-50 dark:hover:bg-solaris-red-900/30 rounded-xl transition-colors flex items-center gap-2"
+                className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/30"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="h-4 w-4" />
                 Delete
               </button>
             ) : (
@@ -273,14 +286,14 @@ export function AliasFormModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 text-sm font-medium text-solaris-600 dark:text-solaris-400 hover:bg-solaris-200 dark:hover:bg-solaris-700 rounded-xl transition-colors"
+                className="rounded-lg px-5 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting || (!isEdit && !prefix.trim())}
-                className="px-5 py-2.5 bg-solaris-blue-500 dark:bg-solaris-blue-400 text-white text-sm font-medium rounded-xl hover:bg-solaris-blue-600 transition-all shadow-lg shadow-solaris-blue-400/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
               >
                 {submitLabel}
               </button>
