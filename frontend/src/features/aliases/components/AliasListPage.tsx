@@ -3,7 +3,6 @@ import type { Alias } from "@/types/alias";
 import {
   Mail,
   Search,
-  Filter,
   ArrowUpDown,
   Plus,
   Zap,
@@ -235,8 +234,13 @@ export function AliasListPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(50);
   const [view, setView] = useState<"all" | "active" | "inactive">("all");
-  const [viewMode, setViewMode] = useState<"row" | "cards">("row");
+  const [viewMode, setViewMode] = useState<"row" | "cards">(() => {
+    const stored = localStorage.getItem("prismel-view-mode");
+    return stored === "cards" ? "cards" : "row";
+  });
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
 
   const loadMore = useCallback(() => {
     setVisibleCount((prev) => Math.min(prev + 50, aliases.length));
@@ -255,6 +259,10 @@ export function AliasListPage() {
     return () => observer.disconnect();
   }, [loadMore]);
 
+  useEffect(() => {
+    localStorage.setItem("prismel-view-mode", viewMode);
+  }, [viewMode]);
+
   const fetchAliases = async () => {
     setLoading(true);
     setError(null);
@@ -271,6 +279,17 @@ export function AliasListPage() {
   useEffect(() => {
     fetchAliases();
   }, []);
+
+  useEffect(() => {
+    if (!showSortMenu) return;
+    const handleClick = (e: MouseEvent) => {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(e.target as Node)) {
+        setShowSortMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showSortMenu]);
 
   const filteredAliases = useMemo(() => {
     let result = aliases;
@@ -572,14 +591,47 @@ export function AliasListPage() {
               className="w-full rounded-lg border border-zinc-200 bg-white py-2 pl-9 pr-4 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
             />
           </div>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800">
-            <Filter className="h-4 w-4" />
-            Filter
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800">
-            <ArrowUpDown className="h-4 w-4" />
-            Sort
-          </button>
+          <div className="relative" ref={sortMenuRef}>
+            <button
+              onClick={() => setShowSortMenu((prev) => !prev)}
+              className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            >
+              <ArrowUpDown className="h-4 w-4" />
+              Sort
+            </button>
+            {showSortMenu && (
+              <div className="absolute right-0 top-full mt-2 z-10 rounded-xl border border-zinc-200 bg-white p-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 min-w-[160px]">
+                {[
+                  { key: "email", label: "Alias" },
+                  { key: "tags", label: "Tags" },
+                  { key: "createdAt", label: "Created" },
+                  { key: "updatedAt", label: "Modified" },
+                ].map((option) => {
+                  const isActive = sortKey === option.key;
+                  return (
+                    <div
+                      key={option.key}
+                      onClick={() => {
+                        handleSort(option.key as keyof Alias);
+                      }}
+                      className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer transition-colors ${
+                        isActive
+                          ? "bg-zinc-100 dark:bg-zinc-800"
+                          : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                      {isActive && (
+                        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                          {sortDir === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
             <button
               onClick={() => setViewMode("row")}
