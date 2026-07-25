@@ -3,6 +3,7 @@ import type { Alias, CreateAliasInput, UpdateAliasInput, GeneratedAlias, SyncRes
 import { generateAlias, isDomainValid } from "./alias.generator.js";
 import { settingsService } from "../settings/settings.service.js";
 import { getProviderClient } from "../../providers/registry.js";
+import { resolveFavicon, randomPastelTint } from "../../lib/favicon.js";
 import crypto from "crypto";
 
 export const aliasService = {
@@ -36,6 +37,15 @@ export const aliasService = {
     }
 
     const now = new Date().toISOString();
+
+    let faviconUrl: string | undefined;
+    let faviconTint: string | undefined;
+    if (input.url) {
+      const resolved = await resolveFavicon(input.url).catch(() => null);
+      faviconUrl = resolved?.dataUrl ?? undefined;
+      faviconTint = resolved?.tint ?? randomPastelTint();
+    }
+
     const alias: Alias = {
       id: crypto.randomUUID(),
       email: input.email,
@@ -44,6 +54,9 @@ export const aliasService = {
       domain: input.domain,
       destination,
       serviceName: input.serviceName,
+      url: input.url || undefined,
+      favicon: faviconUrl,
+      tint: faviconTint,
       description: input.description,
       tags: input.tags || [],
       active: true,
@@ -110,6 +123,17 @@ export const aliasService = {
     const data: Record<string, unknown> = { updatedAt: new Date().toISOString() };
     if (input.destination !== undefined) data.destination = input.destination || null;
     if (input.serviceName !== undefined) data.serviceName = input.serviceName || null;
+    if (input.url !== undefined) {
+      data.url = input.url || null;
+      if (input.url && input.url !== existing.url) {
+        const resolved = await resolveFavicon(input.url).catch(() => null);
+        data.favicon = resolved?.dataUrl ?? null;
+        data.tint = resolved?.tint ?? randomPastelTint();
+      } else if (!input.url) {
+        data.favicon = null;
+        data.tint = null;
+      }
+    }
     if (input.description !== undefined) data.description = input.description || null;
     if (input.tags !== undefined) data.tags = input.tags;
 

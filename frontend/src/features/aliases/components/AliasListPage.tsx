@@ -67,6 +67,157 @@ function relativeDate(dateStr: string): string {
   return `${Math.floor(months / 12)}y ago`;
 }
 
+function extractHostname(url?: string): string | null {
+  if (!url) return null;
+  try {
+    const normalized = url.startsWith("http") ? url : `https://${url}`;
+    return new URL(normalized).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function RowFavicon({
+  favicon,
+  active,
+}: {
+  favicon?: string;
+  active: boolean;
+}) {
+  const [error, setError] = useState(false);
+  const iconColor = active
+    ? "text-zinc-500 dark:text-zinc-400"
+    : "text-zinc-400 dark:text-zinc-500";
+  if (!favicon || error) {
+    return <Mail className={`h-4 w-4 ${iconColor}`} />;
+  }
+  return (
+    <img
+      src={favicon}
+      className="h-5 w-5 rounded"
+      onError={() => setError(true)}
+      alt=""
+    />
+  );
+}
+
+function FaviconCard({
+  alias,
+  onClick,
+  onCopy,
+  copied,
+}: {
+  alias: Alias;
+  onClick: () => void;
+  onCopy: (e: React.MouseEvent) => void;
+  copied: boolean;
+}) {
+  const [imgError, setImgError] = useState(false);
+  const iconColor = alias.active
+    ? "text-zinc-500 dark:text-zinc-400"
+    : "text-zinc-400 dark:text-zinc-500";
+
+  // Use the tint computed server-side and stored in the DB.
+  // Format: "rgba(r,g,b,0.06)" for light mode. Dark mode uses 0.08.
+  const tintLight = alias.tint ?? undefined;
+  const tintDark = alias.tint?.replace("0.06", "0.08");
+
+  return (
+    <div
+      onClick={onClick}
+      style={
+        tintLight
+          ? ({
+              "--card-tint-light": tintLight,
+              "--card-tint-dark": tintDark,
+            } as React.CSSProperties)
+          : undefined
+      }
+      className={`group relative flex cursor-pointer flex-col justify-between rounded-xl border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800 ${
+        tintLight
+          ? "bg-[var(--card-tint-light)] dark:bg-[var(--card-tint-dark)]"
+          : "bg-white dark:bg-zinc-900"
+      }`}
+    >
+      <button
+        onClick={onCopy}
+        className="absolute right-3 top-3 rounded p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        title="Copy to clipboard"
+      >
+        {copied ? (
+          <Check className="h-3.5 w-3.5 text-emerald-600" />
+        ) : (
+          <Copy className="h-3.5 w-3.5 text-zinc-400" />
+        )}
+      </button>
+
+      <div className="flex items-start gap-3 pr-8">
+        {alias.favicon && !imgError ? (
+          <img
+            src={alias.favicon}
+            className="h-10 w-10 flex-shrink-0 rounded-xl"
+            onError={() => setImgError(true)}
+            alt=""
+          />
+        ) : (
+          <div
+            className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 ${iconColor}`}
+          >
+            <Mail className="h-5 w-5" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div
+            className={`truncate text-base font-semibold ${
+              alias.active
+                ? "text-zinc-900 dark:text-zinc-100"
+                : "text-zinc-400 dark:text-zinc-500"
+            }`}
+          >
+            {alias.serviceName || alias.email}
+          </div>
+          <div
+            className={`truncate text-sm ${
+              alias.active
+                ? "text-zinc-500"
+                : "text-zinc-400 dark:text-zinc-500"
+            }`}
+          >
+            {alias.email}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-auto flex items-center justify-between pt-4">
+        <div className="flex flex-wrap gap-1.5">
+          {alias.tags.map((tag) => (
+            <span
+              key={tag}
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ring-1 ring-inset ${getTagClasses(
+                tag
+              )}`}
+            >
+              {tag}
+            </span>
+          ))}
+          {!alias.active && (
+            <span className={INACTIVE_BADGE_CLASSES}>Inactive</span>
+          )}
+        </div>
+        <span
+          className={`text-xs ${
+            alias.active
+              ? "text-zinc-500"
+              : "text-zinc-400 dark:text-zinc-500"
+          }`}
+        >
+          {relativeDate(alias.updatedAt)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function AliasListPage() {
   const [aliases, setAliases] = useState<Alias[]>([]);
   const [loading, setLoading] = useState(true);
@@ -545,17 +696,37 @@ export function AliasListPage() {
                         <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 ${
                           alias.active ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-400 dark:text-zinc-500"
                         }`}>
-                          <Mail className="h-4 w-4" />
+                          <RowFavicon favicon={alias.favicon} active={alias.active} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className={`font-medium ${
-                              alias.active
-                                ? "text-zinc-900 dark:text-zinc-100"
-                                : "text-zinc-400 dark:text-zinc-500"
-                            }`}>
-                              {alias.serviceName || alias.email.split("@")[0]}
-                            </span>
+                          <div className={`flex min-w-0 items-center gap-1 text-sm font-medium ${
+                            alias.active
+                              ? "text-zinc-900 dark:text-zinc-100"
+                              : "text-zinc-400 dark:text-zinc-500"
+                          }`}>
+                            {(() => {
+                              const hostname = extractHostname(alias.url);
+                              if (alias.serviceName && hostname) {
+                                return (
+                                  <>
+                                    <span className="truncate">{alias.serviceName}</span>
+                                    <span className="truncate text-xs text-zinc-400 dark:text-zinc-500">({hostname})</span>
+                                  </>
+                                );
+                              }
+                              if (alias.serviceName) {
+                                return <span className="truncate">{alias.serviceName}</span>;
+                              }
+                              if (hostname) {
+                                return <span className="truncate text-xs text-zinc-400 dark:text-zinc-500">{hostname}</span>;
+                              }
+                              return <span className="truncate">{alias.email}</span>;
+                            })()}
+                          </div>
+                          <div className={`flex items-center gap-1 text-sm ${
+                            alias.active ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"
+                          }`}>
+                            <span className="truncate">{alias.email}</span>
                             <button
                               onClick={(e) =>
                                 handleCopy(e, alias.email, alias.id)
@@ -564,16 +735,11 @@ export function AliasListPage() {
                               title="Copy to clipboard"
                             >
                               {copiedId === alias.id ? (
-                                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                                <Check className="h-3 w-3 text-emerald-600" />
                               ) : (
-                                <Copy className={`h-3.5 w-3.5 ${alias.active ? "text-zinc-400" : "text-zinc-400 dark:text-zinc-500"}`} />
+                                <Copy className={`h-3 w-3 ${alias.active ? "text-zinc-400" : "text-zinc-400 dark:text-zinc-500"}`} />
                               )}
                             </button>
-                          </div>
-                          <div className={`truncate text-sm ${
-                            alias.active ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"
-                          }`}>
-                            {alias.email}
                           </div>
                         </div>
                       </div>
@@ -622,62 +788,13 @@ export function AliasListPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {displayedAliases.slice(0, visibleCount).map((alias) => (
-              <div
+              <FaviconCard
                 key={alias.id}
+                alias={alias}
                 onClick={() => openEdit(alias)}
-                className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
-              >
-                <button
-                  onClick={(e) => handleCopy(e, alias.email, alias.id)}
-                  className="absolute right-3 top-3 rounded p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  title="Copy to clipboard"
-                >
-                  {copiedId === alias.id ? (
-                    <Check className="h-3.5 w-3.5 text-emerald-600" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5 text-zinc-400" />
-                  )}
-                </button>
-
-                <div className="pr-8">
-                  <div className={`break-all text-base font-semibold ${
-                    alias.active
-                      ? "text-zinc-900 dark:text-zinc-100"
-                      : "text-zinc-400 dark:text-zinc-500"
-                  }`}>
-                    {alias.email}
-                  </div>
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {alias.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ring-1 ring-inset ${getTagClasses(
-                        tag
-                      )}`}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                  {!alias.active && (
-                    <span className={INACTIVE_BADGE_CLASSES}>Inactive</span>
-                  )}
-                </div>
-
-                <div className="mt-auto flex items-center justify-between pt-4">
-                  <span className={`inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium dark:bg-zinc-800 ${
-                    alias.active
-                      ? "text-zinc-700 dark:text-zinc-300"
-                      : "text-zinc-400 dark:text-zinc-500"
-                  }`}>
-                    {alias.domain}
-                  </span>
-                  <span className={`text-xs ${alias.active ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"}`}>
-                    {relativeDate(alias.updatedAt)}
-                  </span>
-                </div>
-              </div>
+                onCopy={(e) => handleCopy(e, alias.email, alias.id)}
+                copied={copiedId === alias.id}
+              />
             ))}
           </div>
         )}

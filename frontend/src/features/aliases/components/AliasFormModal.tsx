@@ -28,6 +28,8 @@ export function AliasFormModal({
   const [domain, setDomain] = useState<string>("");
   const [destination, setDestination] = useState("");
   const [serviceName, setServiceName] = useState("");
+  const [url, setUrl] = useState("");
+  const [urlError, setUrlError] = useState(false);
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -40,6 +42,7 @@ export function AliasFormModal({
   useEffect(() => {
     if (mode === "edit" && alias) {
       setServiceName(alias.serviceName || "");
+      setUrl(alias.url || "");
       setDestination(alias.destination || "");
       setDescription(alias.description || "");
       setTags(alias.tags.join(", "));
@@ -50,6 +53,7 @@ export function AliasFormModal({
   useEffect(() => {
     if (open) {
       setError(null);
+      setUrlError(false);
       fetch("/api/settings")
         .then((r) => r.json())
         .then((data) => {
@@ -112,6 +116,10 @@ export function AliasFormModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isEdit && !prefix.trim()) return;
+    if (!isValidUrl(url)) {
+      setUrlError(true);
+      return;
+    }
     const parsedTags = tags
       .split(",")
       .map((t) => t.trim())
@@ -127,6 +135,7 @@ export function AliasFormModal({
         const input: UpdateAliasInput = {
           destination: destination.trim(),
           serviceName: serviceName.trim(),
+          url: url.trim(),
           description: description.trim(),
           tags: parsedTags,
         };
@@ -137,6 +146,7 @@ export function AliasFormModal({
           domain,
           destination: destination.trim() || undefined,
           serviceName: serviceName.trim() || undefined,
+          url: url.trim() || undefined,
           description: description.trim() || undefined,
           tags: parsedTags,
         };
@@ -144,6 +154,7 @@ export function AliasFormModal({
         setPrefix("");
         setDestination("");
         setServiceName("");
+        setUrl("");
         setDescription("");
         setTags("");
       }
@@ -262,6 +273,29 @@ export function AliasFormModal({
             />
           </div>
 
+          {/* Website URL */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Website URL
+            </label>
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                if (urlError) setUrlError(false);
+              }}
+              onBlur={() => setUrlError(!isValidUrl(url))}
+              placeholder="example.com"
+              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+            />
+            {urlError && (
+              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                Invalid URL
+              </p>
+            )}
+          </div>
+
           {/* Description */}
           <div>
             <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
@@ -357,4 +391,21 @@ export function AliasFormModal({
       </div>
     </ModalPortal>
   );
+}
+
+function isValidUrl(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  if (trimmed.includes(" ")) return false;
+  try {
+    new URL(trimmed);
+    return true;
+  } catch {
+    try {
+      new URL(`https://${trimmed}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }

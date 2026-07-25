@@ -6,6 +6,9 @@ export interface Alias {
   domain: string;
   destination?: string;
   serviceName?: string;
+  url?: string;
+  favicon?: string;
+  tint?: string;
   description?: string;
   tags: string[];
   active: boolean;
@@ -19,6 +22,7 @@ export interface CreateAliasInput {
   domain: string;
   destination?: string;
   serviceName?: string;
+  url?: string;
   description?: string;
   tags?: string[];
 }
@@ -27,6 +31,7 @@ export interface UpdateAliasInput {
   email?: string;
   destination?: string;
   serviceName?: string;
+  url?: string;
   description?: string;
   tags?: string[];
   active?: boolean;
