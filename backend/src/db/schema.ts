@@ -10,6 +10,7 @@ export const aliases = sqliteTable("aliases", {
   serviceName: text("service_name"),
   description: text("description"),
   tags: text("tags", { mode: "json" }).$type<string[]>().default([]),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
   lastSyncAt: text("last_sync_at"),

@@ -1,0 +1,1 @@
+ALTER TABLE `aliases` ADD `active` integer DEFAULT true NOT NULL;

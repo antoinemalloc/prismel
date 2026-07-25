@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { Alias, CreateAliasInput, UpdateAliasInput } from "@/types/alias";
-import { X, RefreshCw, Trash2 } from "lucide-react";
+import { X, RefreshCw, Trash2, ToggleLeft, ToggleRight, Loader2 } from "lucide-react";
 import { api } from "../../../lib/api";
 import { RedirectCombobox } from "./RedirectCombobox";
 import { ModalPortal } from "../../../components/ModalPortal";
@@ -34,6 +34,8 @@ export function AliasFormModal({
   const [error, setError] = useState<string | null>(null);
   const [redirectTargets, setRedirectTargets] = useState<string[]>([]);
   const [domains, setDomains] = useState<string[]>([]);
+  const [isActive, setIsActive] = useState(alias?.active ?? true);
+  const [activeSubmitting, setActiveSubmitting] = useState(false);
 
   useEffect(() => {
     if (mode === "edit" && alias) {
@@ -41,6 +43,7 @@ export function AliasFormModal({
       setDestination(alias.destination || "");
       setDescription(alias.description || "");
       setTags(alias.tags.join(", "));
+      setIsActive(alias.active);
     }
   }, [mode, alias]);
 
@@ -90,9 +93,33 @@ export function AliasFormModal({
     }
   };
 
+  const handleToggleActive = async () => {
+    if (!alias) return;
+    const newActive = !isActive;
+    setIsActive(newActive);
+    setError(null);
+    setActiveSubmitting(true);
+    try {
+      await api.updateAlias(alias.id, { active: newActive });
+    } catch (e) {
+      setIsActive(!newActive); // revert on error
+      setError(e instanceof Error ? e.message : "Failed to update alias");
+    } finally {
+      setActiveSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isEdit && !prefix.trim()) return;
+    const parsedTags = tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (parsedTags.some((t) => t.toLowerCase() === "inactive")) {
+      setError('"Inactive" is a reserved tag and cannot be used');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -101,10 +128,7 @@ export function AliasFormModal({
           destination: destination.trim(),
           serviceName: serviceName.trim(),
           description: description.trim(),
-          tags: tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean),
+          tags: parsedTags,
         };
         await api.updateAlias(alias.id, input);
       } else {
@@ -114,10 +138,7 @@ export function AliasFormModal({
           destination: destination.trim() || undefined,
           serviceName: serviceName.trim() || undefined,
           description: description.trim() || undefined,
-          tags: tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter(Boolean),
+          tags: parsedTags,
         };
         await api.createAlias(input);
         setPrefix("");
@@ -269,6 +290,36 @@ export function AliasFormModal({
             />
             <p className="mt-1.5 text-xs text-zinc-400">Separate tags with commas</p>
           </div>
+
+          {/* Active Toggle */}
+          {isEdit && (
+            <div className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50/50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/30">
+              <div>
+                <label className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                  Active
+                </label>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  When active, this alias has a remote redirection and works
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleActive}
+                disabled={activeSubmitting}
+                className="rounded-lg p-2 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-zinc-800"
+                aria-pressed={isActive}
+                title={isActive ? "Deactivate alias" : "Activate alias"}
+              >
+                {activeSubmitting ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
+                ) : isActive ? (
+                  <ToggleRight className="h-6 w-6 text-emerald-600 dark:text-emerald-500" />
+                ) : (
+                  <ToggleLeft className="h-6 w-6 text-zinc-400 dark:text-zinc-500" />
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="-mx-6 -mb-6 mt-6 flex justify-between gap-3 border-t border-zinc-100 bg-zinc-50/50 px-6 py-5 dark:border-zinc-800 dark:bg-zinc-950/50">

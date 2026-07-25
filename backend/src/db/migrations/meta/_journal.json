@@ -8,6 +8,13 @@
       "when": 1784291883086,
       "tag": "0000_new_zaran",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1784984736151,
+      "tag": "0001_new_blur",
+      "breakpoints": true
     }
   ]
 }

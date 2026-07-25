@@ -1,7 +1,7 @@
 import { db } from "../../db/index.js";
 import { aliases } from "../../db/schema.js";
 import type { Alias } from "../../types/alias.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export const aliasRepository = {
   findAll(): Alias[] {
@@ -41,5 +41,13 @@ export const aliasRepository = {
 
   findByProviderId(providerId: string): Alias | undefined {
     return db.select().from(aliases).where(eq(aliases.providerId, providerId)).get() as Alias | undefined;
+  },
+
+  findByProviderAndDomain(provider: string, domain: string): Alias[] {
+    return db
+      .select()
+      .from(aliases)
+      .where(and(eq(aliases.provider, provider), eq(aliases.domain, domain)))
+      .all() as Alias[];
   },
 };

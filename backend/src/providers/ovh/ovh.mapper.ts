@@ -17,6 +17,7 @@ export function mapRedirectionToAlias(domain: string, redir: OvhRedirection): Al
     domain,
     destination: redir.to,
     tags: [],
+    active: true,
     createdAt: now,
     updatedAt: now,
   };

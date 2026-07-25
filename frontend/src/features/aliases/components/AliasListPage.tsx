@@ -39,6 +39,9 @@ function getTagClasses(tag: string): string {
   );
 }
 
+const INACTIVE_BADGE_CLASSES =
+  "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide border bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-300 dark:border-red-900/40";
+
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-US", {
@@ -80,7 +83,7 @@ export function AliasListPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(50);
-  const [view, setView] = useState<"all" | "active">("all");
+  const [view, setView] = useState<"all" | "active" | "inactive">("all");
   const [viewMode, setViewMode] = useState<"row" | "cards">("row");
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -119,15 +122,21 @@ export function AliasListPage() {
   }, []);
 
   const filteredAliases = useMemo(() => {
+    let result = aliases;
+    if (view === "active") {
+      result = result.filter((a) => a.active);
+    } else if (view === "inactive") {
+      result = result.filter((a) => !a.active);
+    }
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return aliases;
-    return aliases.filter(
+    if (!q) return result;
+    return result.filter(
       (a) =>
         a.email.toLowerCase().includes(q) ||
         (a.serviceName && a.serviceName.toLowerCase().includes(q)) ||
         a.tags.some((t) => t.toLowerCase().includes(q))
     );
-  }, [aliases, searchQuery]);
+  }, [aliases, searchQuery, view]);
 
   const displayedAliases = useMemo(() => {
     if (!sortKey) return filteredAliases;
@@ -211,7 +220,7 @@ export function AliasListPage() {
     return {
       total: aliases.length,
       domains: domains.size,
-      active: aliases.length,
+      active: aliases.filter((a) => a.active).length,
       tags: tags.size,
     };
   }, [aliases]);
@@ -375,6 +384,16 @@ export function AliasListPage() {
             >
               Active
             </button>
+            <button
+              onClick={() => setView("inactive")}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                view === "inactive"
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              Inactive
+            </button>
           </div>
 
         </div>
@@ -505,16 +524,24 @@ export function AliasListPage() {
                   <tr
                     key={alias.id}
                     onClick={() => openEdit(alias)}
-                    className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/50"
+                    className={`cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/50 ${
+                      !alias.active ? "text-zinc-400 dark:text-zinc-500" : ""
+                    }`}
                   >
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                        <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 ${
+                          alias.active ? "text-zinc-500 dark:text-zinc-400" : "text-zinc-400 dark:text-zinc-500"
+                        }`}>
                           <Mail className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                            <span className={`font-medium ${
+                              alias.active
+                                ? "text-zinc-900 dark:text-zinc-100"
+                                : "text-zinc-400 dark:text-zinc-500"
+                            }`}>
                               {alias.serviceName || alias.email.split("@")[0]}
                             </span>
                             <button
@@ -527,11 +554,13 @@ export function AliasListPage() {
                               {copiedId === alias.id ? (
                                 <Check className="h-3.5 w-3.5 text-emerald-600" />
                               ) : (
-                                <Copy className="h-3.5 w-3.5 text-zinc-400" />
+                                <Copy className={`h-3.5 w-3.5 ${alias.active ? "text-zinc-400" : "text-zinc-400 dark:text-zinc-500"}`} />
                               )}
                             </button>
                           </div>
-                          <div className="truncate text-sm text-zinc-500">
+                          <div className={`truncate text-sm ${
+                            alias.active ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"
+                          }`}>
                             {alias.email}
                           </div>
                         </div>
@@ -549,20 +578,27 @@ export function AliasListPage() {
                             {tag}
                           </span>
                         ))}
+                        {!alias.active && (
+                          <span className={INACTIVE_BADGE_CLASSES}>Inactive</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                      <span className={`inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium dark:bg-zinc-800 ${
+                        alias.active
+                          ? "text-zinc-700 dark:text-zinc-300"
+                          : "text-zinc-400 dark:text-zinc-500"
+                      }`}>
                         {alias.domain}
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs text-zinc-500">
+                      <span className={`text-xs ${alias.active ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"}`}>
                         {formatDate(alias.createdAt)}
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <span className="text-xs text-zinc-500">
+                      <span className={`text-xs ${alias.active ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"}`}>
                         {formatDate(alias.updatedAt)}
                       </span>
                     </td>
@@ -592,7 +628,11 @@ export function AliasListPage() {
                 </button>
 
                 <div className="pr-8">
-                  <div className="break-all text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                  <div className={`break-all text-base font-semibold ${
+                    alias.active
+                      ? "text-zinc-900 dark:text-zinc-100"
+                      : "text-zinc-400 dark:text-zinc-500"
+                  }`}>
                     {alias.email}
                   </div>
                 </div>
@@ -608,13 +648,20 @@ export function AliasListPage() {
                       {tag}
                     </span>
                   ))}
+                  {!alias.active && (
+                    <span className={INACTIVE_BADGE_CLASSES}>Inactive</span>
+                  )}
                 </div>
 
                 <div className="mt-auto flex items-center justify-between pt-4">
-                  <span className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  <span className={`inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium dark:bg-zinc-800 ${
+                    alias.active
+                      ? "text-zinc-700 dark:text-zinc-300"
+                      : "text-zinc-400 dark:text-zinc-500"
+                  }`}>
                     {alias.domain}
                   </span>
-                  <span className="text-xs text-zinc-500">
+                  <span className={`text-xs ${alias.active ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"}`}>
                     {relativeDate(alias.updatedAt)}
                   </span>
                 </div>

@@ -46,6 +46,7 @@ export const aliasService = {
       serviceName: input.serviceName,
       description: input.description,
       tags: input.tags || [],
+      active: true,
       createdAt: now,
       updatedAt: now,
     };
@@ -57,8 +58,46 @@ export const aliasService = {
     const existing = aliasRepository.findById(id);
     if (!existing) return undefined;
 
+    const client = getProviderClient(existing.provider);
+
+    // Handle active toggle
+    if (input.active !== undefined && input.active !== existing.active) {
+      if (input.active) {
+        // inactive → active: create remote redirection
+        if (!client) throw new Error(`Provider "${existing.provider}" is not supported`);
+        const destination = input.destination || existing.destination || existing.email;
+        try {
+          const providerId = await client.createRedirection(existing.domain, existing.email, destination);
+          const data: Record<string, unknown> = {
+            active: true,
+            providerId,
+            destination,
+            updatedAt: new Date().toISOString(),
+          };
+          return aliasRepository.update(id, data as Partial<Alias>);
+        } catch (e) {
+          throw new Error(`Provider create redirection failed: ${(e as Error).message}`);
+        }
+      } else {
+        // active → inactive: delete remote redirection
+        if (client && existing.providerId) {
+          try {
+            await client.deleteRedirection(existing.domain, existing.providerId);
+            await client.verifyDeleted(existing.domain, existing.providerId);
+          } catch (e) {
+            throw e;
+          }
+        }
+        const data: Record<string, unknown> = {
+          active: false,
+          providerId: "",
+          updatedAt: new Date().toISOString(),
+        };
+        return aliasRepository.update(id, data as Partial<Alias>);
+      }
+    }
+
     if (input.destination && input.destination !== existing.destination && existing.providerId) {
-      const client = getProviderClient(existing.provider);
       if (client) {
         try {
           await client.updateRedirection(existing.domain, existing.providerId, input.destination);
@@ -85,7 +124,7 @@ export const aliasService = {
 
     const client = getProviderClient(alias.provider);
 
-    if (alias.providerId && client) {
+    if (alias.active && alias.providerId && client) {
       try {
         await client.deleteRedirection(alias.domain, alias.providerId);
         await client.verifyDeleted(alias.domain, alias.providerId);
@@ -153,7 +192,9 @@ export const aliasService = {
 
         let imported = 0;
         let alreadySynced = 0;
+        let resurrected = 0;
         let domainErrors = 0;
+        const remoteProviderIds = new Set<string>();
 
         for (let i = 0; i < redirIds.length; i++) {
           const redirId = redirIds[i];
@@ -162,6 +203,7 @@ export const aliasService = {
           try {
             const redir = await syncClient.getRedirection(domain, String(redirId));
             const providerId = String(redir.id);
+            remoteProviderIds.add(providerId);
             const existing = aliasRepository.findByProviderId(providerId);
 
             if (!existing) {
@@ -181,6 +223,15 @@ export const aliasService = {
                 result.updated++;
                 log(`│  ${progress} ↻ UPD  #${redirId}  ${redir.from} → ${redir.to} (was: ${existing.destination})`);
               }
+              // Resurrect inactive alias that now exists remotely
+              if (!existing.active) {
+                aliasRepository.update(existing.id, {
+                  active: true,
+                  updatedAt: new Date().toISOString(),
+                });
+                resurrected++;
+                log(`│  ${progress} ↺ RST  #${redirId}  ${redir.from} — resurrected to active`);
+              }
             }
           } catch (e) {
             domainErrors++;
@@ -190,9 +241,23 @@ export const aliasService = {
           }
         }
 
+        // Detect orphans: local active aliases not found on remote
+        let orphaned = 0;
+        const localAliases = aliasRepository.findByProviderAndDomain(provider, domain);
+        for (const local of localAliases) {
+          if (local.active && local.providerId && !remoteProviderIds.has(local.providerId)) {
+            aliasRepository.update(local.id, {
+              active: false,
+              updatedAt: new Date().toISOString(),
+            });
+            orphaned++;
+            log(`│  → ORPH  #${local.providerId}  ${local.email} — marked inactive`);
+          }
+        }
+
         const domainTime = ((Date.now() - domainStart) / 1000).toFixed(1);
         log(`│`);
-        log(`│  Summary: ${imported} new, ${alreadySynced} existing, ${domainErrors} error(s)`);
+        log(`│  Summary: ${imported} new, ${alreadySynced} existing, ${resurrected} resurrected, ${orphaned} orphaned, ${domainErrors} error(s)`);
         log(`└─ Done (${domainTime}s)`);
         log("");
       } catch (e) {

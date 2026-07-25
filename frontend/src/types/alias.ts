@@ -8,6 +8,7 @@ export interface Alias {
   serviceName?: string;
   description?: string;
   tags: string[];
+  active: boolean;
   createdAt: string;
   updatedAt: string;
   lastSyncAt?: string;
@@ -28,6 +29,7 @@ export interface UpdateAliasInput {
   serviceName?: string;
   description?: string;
   tags?: string[];
+  active?: boolean;
 }
 
 export interface GeneratedAlias {
