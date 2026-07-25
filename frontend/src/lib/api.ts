@@ -45,4 +45,9 @@ export const api = {
 
   sync: () =>
     request<SyncResult>("/aliases/sync", { method: "POST" }),
+
+  getSettings: () => request<Record<string, string>>("/settings"),
+
+  getRemoteCount: (provider: string) =>
+    request<{ count: number }>(`/providers/${provider}/remote-count`),
 };

@@ -9,15 +9,24 @@ import {
   Mail,
   ArrowRight,
   Terminal,
+  X,
 } from "lucide-react";
 import { api } from "../../../lib/api";
 import { useSync } from "../SyncContext";
+import { ModalPortal } from "../../../components/ModalPortal";
 
 export function SyncPage() {
   const { syncing, logs, result, error, startSync } = useSync();
   const [aliases, setAliases] = useState<Alias[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState(() =>
+    localStorage.getItem("prismel-selected-provider") || "",
+  );
+  const [providers, setProviders] = useState<string[]>([]);
+  const [remoteCount, setRemoteCount] = useState<number | null>(null);
+  const [remoteCountLoading, setRemoteCountLoading] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
   const logsRef = useRef<HTMLDivElement>(null);
 
   const fetchAliases = async () => {
@@ -40,6 +49,41 @@ export function SyncPage() {
       fetchAliases();
     }
   }, [result]);
+
+  useEffect(() => {
+    api
+      .getSettings()
+      .then((data) => {
+        const raw = data["domain_providers"];
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as Record<string, string>;
+            const unique = [...new Set(Object.values(parsed))].sort();
+            setProviders(unique);
+          } catch {
+            // ignore invalid JSON
+          }
+        }
+      })
+      .catch(() => {
+        // ignore fetch error
+      });
+  }, []);
+
+  useEffect(() => {
+    if (selectedProvider) {
+      localStorage.setItem("prismel-selected-provider", selectedProvider);
+      setRemoteCountLoading(true);
+      api
+        .getRemoteCount(selectedProvider)
+        .then((data) => setRemoteCount(data.count))
+        .catch(() => setRemoteCount(null))
+        .finally(() => setRemoteCountLoading(false));
+    } else {
+      localStorage.removeItem("prismel-selected-provider");
+      setRemoteCount(null);
+    }
+  }, [selectedProvider]);
 
   useEffect(() => {
     if (logsRef.current) {
@@ -74,26 +118,44 @@ export function SyncPage() {
       </div>
 
       {/* Stats */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-50 text-zinc-700 dark:bg-zinc-950/30 dark:text-zinc-300">
             <Database className="h-6 w-6" />
           </div>
           <div>
             <div className="text-xs font-medium text-zinc-500">Local Aliases</div>
             <div className="mt-0.5 text-2xl font-medium text-zinc-900 dark:text-zinc-100">
-              {loading ? "—" : aliases.length}
+              {loading
+                ? "—"
+                : selectedProvider
+                  ? aliases.filter((a) => a.provider === selectedProvider).length
+                  : aliases.length}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+        <button
+          onClick={() => setShowPicker(true)}
+          className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-5 text-left transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800/50"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300">
             <Mail className="h-6 w-6" />
           </div>
           <div>
             <div className="text-xs font-medium text-zinc-500">Provider</div>
             <div className="mt-0.5 text-2xl font-medium text-zinc-900 dark:text-zinc-100">
-              —
+              {selectedProvider || "Select provider"}
+            </div>
+          </div>
+        </button>
+        <div className="flex items-center gap-4 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+            <RefreshCw className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="text-xs font-medium text-zinc-500">Remote Aliases</div>
+            <div className="mt-0.5 text-2xl font-medium text-zinc-900 dark:text-zinc-100">
+              {!selectedProvider || remoteCountLoading ? "—" : remoteCount}
             </div>
           </div>
         </div>
@@ -222,6 +284,55 @@ export function SyncPage() {
             )}
           </div>
         </div>
+      )}
+      {/* Provider Picker Modal */}
+      {showPicker && (
+        <ModalPortal>
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/50 backdrop-blur-sm"
+            onClick={() => setShowPicker(false)}
+          >
+            <div
+              className="w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-6 shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  Select provider
+                </h3>
+                <button
+                  onClick={() => setShowPicker(false)}
+                  className="rounded-lg p-1 text-zinc-400 transition-colors hover:text-zinc-600 dark:hover:text-zinc-300"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="space-y-1">
+                {providers.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => {
+                      setSelectedProvider(p);
+                      setShowPicker(false);
+                    }}
+                    className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${
+                      selectedProvider === p
+                        ? "bg-zinc-100 font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                        : "text-zinc-600 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800/50"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                {providers.length === 0 && (
+                  <p className="py-3 text-center text-sm text-zinc-400">
+                    No providers configured
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
       )}
     </div>
   );

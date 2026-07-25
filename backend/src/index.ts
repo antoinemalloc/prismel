@@ -9,7 +9,8 @@ import {
 } from "./validators/alias.validator.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { settingsController } from "./modules/settings/settings.controller.js";
-import { getSupportedProviders } from "./providers/registry.js";
+import { getProviderClient, getSupportedProviders } from "./providers/registry.js";
+import { settingsService } from "./modules/settings/settings.service.js";
 import { closeDb } from "./db/index.js";
 
 const app = express();
@@ -37,6 +38,32 @@ app.post("/api/settings/test-connection", settingsController.testConnection);
 // Provider routes
 app.get("/api/settings/providers", (_req, res) => {
   res.json(getSupportedProviders());
+});
+
+app.get("/api/providers/:name/remote-count", async (req, res) => {
+  const providerName = req.params.name;
+  const client = getProviderClient(providerName);
+  if (!client) {
+    res.status(404).json({ error: `Provider not found: ${providerName}` });
+    return;
+  }
+
+  const domains = settingsService.getDomains();
+  const domainProviders = settingsService.getDomainProviders();
+  let total = 0;
+
+  for (const domain of domains) {
+    if (domainProviders[domain] === providerName) {
+      try {
+        const ids = await client.listRedirectionIds(domain);
+        total += Array.isArray(ids) ? ids.length : 0;
+      } catch {
+        // skip domains that fail
+      }
+    }
+  }
+
+  res.json({ count: total });
 });
 
 // Error handler

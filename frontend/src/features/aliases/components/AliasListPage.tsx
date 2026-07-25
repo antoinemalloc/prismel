@@ -12,8 +12,8 @@ import {
   Tag,
   Copy,
   Check,
-  ToggleLeft,
-  ToggleRight,
+  AlignJustify,
+  LayoutGrid,
 } from "lucide-react";
 import { api } from "../../../lib/api";
 import { QuickGenerateModal } from "./QuickGenerateModal";
@@ -48,6 +48,22 @@ function formatDate(dateStr: string): string {
   });
 }
 
+function relativeDate(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks}w ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(months / 12)}y ago`;
+}
+
 export function AliasListPage() {
   const [aliases, setAliases] = useState<Alias[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +81,7 @@ export function AliasListPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(50);
   const [view, setView] = useState<"all" | "active">("all");
-  const [compact, setCompact] = useState(false);
+  const [viewMode, setViewMode] = useState<"row" | "cards">("row");
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const loadMore = useCallback(() => {
@@ -211,8 +227,6 @@ export function AliasListPage() {
     setFormModalOpen(true);
     setFormModalVisible(true);
   };
-
-  const rowPadding = compact ? "py-3" : "py-4";
 
   if (loading) {
     return (
@@ -363,22 +377,6 @@ export function AliasListPage() {
             </button>
           </div>
 
-          <button
-            onClick={() => setCompact((v) => !v)}
-            className={`inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800 ${
-              compact
-                ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
-                : "bg-white text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400"
-            }`}
-            aria-pressed={compact}
-          >
-            {compact ? (
-              <ToggleRight className="h-4 w-4" />
-            ) : (
-              <ToggleLeft className="h-4 w-4" />
-            )}
-            Compact
-          </button>
         </div>
 
         <div className="flex w-full items-center gap-3 sm:w-auto">
@@ -400,6 +398,30 @@ export function AliasListPage() {
             <ArrowUpDown className="h-4 w-4" />
             Sort
           </button>
+          <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+            <button
+              onClick={() => setViewMode("row")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === "row"
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              <AlignJustify className="h-3.5 w-3.5" />
+              Row
+            </button>
+            <button
+              onClick={() => setViewMode("cards")}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                viewMode === "cards"
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              Cards
+            </button>
+          </div>
         </div>
       </div>
 
@@ -435,7 +457,8 @@ export function AliasListPage() {
           </div>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        {viewMode === "row" ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
@@ -484,7 +507,7 @@ export function AliasListPage() {
                     onClick={() => openEdit(alias)}
                     className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/50"
                   >
-                    <td className={`px-4 ${rowPadding}`}>
+                    <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                           <Mail className="h-4 w-4" />
@@ -514,7 +537,7 @@ export function AliasListPage() {
                         </div>
                       </div>
                     </td>
-                    <td className={`px-4 ${rowPadding}`}>
+                    <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-1.5">
                         {alias.tags.map((tag) => (
                           <span
@@ -528,17 +551,17 @@ export function AliasListPage() {
                         ))}
                       </div>
                     </td>
-                    <td className={`px-4 ${rowPadding}`}>
+                    <td className="px-4 py-4">
                       <span className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                         {alias.domain}
                       </span>
                     </td>
-                    <td className={`px-4 ${rowPadding}`}>
+                    <td className="px-4 py-4">
                       <span className="text-xs text-zinc-500">
                         {formatDate(alias.createdAt)}
                       </span>
                     </td>
-                    <td className={`px-4 ${rowPadding}`}>
+                    <td className="px-4 py-4">
                       <span className="text-xs text-zinc-500">
                         {formatDate(alias.updatedAt)}
                       </span>
@@ -548,7 +571,58 @@ export function AliasListPage() {
               </tbody>
             </table>
           </div>
-          <div className="border-t border-zinc-100 px-6 py-4 text-center dark:border-zinc-800">
+        ) : (
+          <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {displayedAliases.slice(0, visibleCount).map((alias) => (
+              <div
+                key={alias.id}
+                onClick={() => openEdit(alias)}
+                className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+              >
+                <button
+                  onClick={(e) => handleCopy(e, alias.email, alias.id)}
+                  className="absolute right-3 top-3 rounded p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  title="Copy to clipboard"
+                >
+                  {copiedId === alias.id ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5 text-zinc-400" />
+                  )}
+                </button>
+
+                <div className="pr-8">
+                  <div className="break-all text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                    {alias.email}
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {alias.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ring-1 ring-inset ${getTagClasses(
+                        tag
+                      )}`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-auto flex items-center justify-between pt-4">
+                  <span className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    {alias.domain}
+                  </span>
+                  <span className="text-xs text-zinc-500">
+                    {relativeDate(alias.updatedAt)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="border-t border-zinc-100 px-6 py-4 text-center dark:border-zinc-800">
             <span className="text-sm text-zinc-500">
               Showing {Math.min(visibleCount, displayedAliases.length)} of{" "}
               {displayedAliases.length} aliases
