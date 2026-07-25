@@ -1,4 +1,5 @@
 import { X, ExternalLink } from "lucide-react";
+import { ModalPortal } from "../../components/ModalPortal";
 
 interface AboutModalProps {
   open: boolean;
@@ -9,8 +10,9 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <ModalPortal>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-5 dark:border-zinc-800">
           <div className="flex items-center gap-4">
             <img src="/icon.png" alt="Prismel" className="h-16 w-16 rounded-xl" />
@@ -61,6 +63,7 @@ export function AboutModal({ open, onClose }: AboutModalProps) {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </ModalPortal>
   );
 }

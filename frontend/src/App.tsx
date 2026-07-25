@@ -4,9 +4,9 @@ import {
   Mail,
   RefreshCw,
   Settings,
-  LifeBuoy,
-  HardDrive,
-  User,
+  HelpCircle,
+
+
   Menu,
   X,
 } from "lucide-react";
@@ -120,15 +120,10 @@ export function App() {
               label="Sync"
               onClick={closeMobile}
             />
-            <SidebarNavLink
-              to="/settings"
-              icon={<Settings className="h-5 w-5" />}
-              label="Settings"
-              onClick={closeMobile}
-            />
           </nav>
 
           <div className="space-y-1 border-t border-zinc-200 px-3 py-4 dark:border-zinc-800">
+            <ThemeToggle />
             <button
               onClick={() => {
                 setAboutOpen(true);
@@ -136,8 +131,8 @@ export function App() {
               }}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-500 transition-colors duration-150 hover:bg-zinc-200/50 hover:text-zinc-900 md:justify-center lg:justify-start dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
             >
-              <LifeBuoy className="h-5 w-5 flex-shrink-0" />
-              <span className="hidden lg:inline">Help</span>
+              <HelpCircle className="h-5 w-5 flex-shrink-0" />
+              <span className="hidden lg:inline">About</span>
             </button>
             <SidebarNavLink
               to="/settings"
@@ -146,32 +141,7 @@ export function App() {
               onClick={closeMobile}
             />
 
-            <div className="hidden rounded-lg border border-zinc-200 bg-white p-3 lg:block dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="mb-2 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                <HardDrive className="h-4 w-4" />
-                <span className="font-medium">Storage</span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-                <div className="h-full w-0 rounded-full bg-zinc-900 dark:bg-zinc-100" />
-              </div>
-              <div className="mt-1 text-xs text-zinc-400">0% used</div>
-            </div>
 
-            <div className="hidden items-center gap-3 px-3 py-3 lg:flex">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                <User className="h-4 w-4" />
-              </div>
-              <div className="text-sm">
-                <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                  Admin
-                </div>
-                <div className="text-xs text-zinc-500">admin@prismel</div>
-              </div>
-            </div>
-
-            <div className="pt-1">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
       </aside>
