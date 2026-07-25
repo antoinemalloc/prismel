@@ -46,7 +46,7 @@ function SidebarNavLink({
       <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center">
         {icon}
       </span>
-      <span className="hidden lg:inline">{label}</span>
+      <span className="inline">{label}</span>
     </NavLink>
   );
 }
@@ -84,7 +84,7 @@ export function App() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-64 border-r border-zinc-200 bg-zinc-100/50 transition-transform duration-200 ease-out md:translate-x-0 md:w-20 lg:w-64 dark:border-zinc-800 dark:bg-zinc-900 ${
+        className={`fixed left-0 top-0 z-50 h-screen w-64 border-r border-zinc-200 bg-zinc-100 transition-transform duration-200 ease-out md:translate-x-0 md:w-20 lg:w-64 dark:border-zinc-800 dark:bg-zinc-900 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -132,7 +132,7 @@ export function App() {
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-500 transition-colors duration-150 hover:bg-zinc-200/50 hover:text-zinc-900 md:justify-center lg:justify-start dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
             >
               <HelpCircle className="h-5 w-5 flex-shrink-0" />
-              <span className="hidden lg:inline">About</span>
+              <span className="inline">About</span>
             </button>
             <SidebarNavLink
               to="/settings"

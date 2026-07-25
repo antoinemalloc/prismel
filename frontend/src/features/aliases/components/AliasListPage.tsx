@@ -473,7 +473,7 @@ export function AliasListPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 hidden sm:grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-500">Total</span>
