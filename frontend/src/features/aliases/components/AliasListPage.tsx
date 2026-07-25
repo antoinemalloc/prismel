@@ -221,6 +221,7 @@ export function AliasListPage() {
       total: aliases.length,
       domains: domains.size,
       active: aliases.filter((a) => a.active).length,
+      inactive: aliases.filter((a) => !a.active).length,
       tags: tags.size,
     };
   }, [aliases]);
@@ -342,6 +343,17 @@ export function AliasListPage() {
             <div className="text-3xl font-medium text-emerald-700 dark:text-emerald-300">
               {stats.active}
             </div>
+            {stats.inactive > 0 && (
+            <div className="mb-1 text-xs font-medium text-zinc-400">
+              <button
+                type="button"
+                onClick={() => setView("inactive")}
+                className="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+              >
+                {stats.inactive} inactive
+              </button>
+            </div>
+            )}
           </div>
         </div>
 
