@@ -12,7 +12,6 @@ import {
   Tag,
   Copy,
   Check,
-  ArrowUpRight,
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
@@ -292,10 +291,6 @@ export function AliasListPage() {
             <div className="text-3xl font-medium text-zinc-900 dark:text-zinc-100">
               {stats.total}
             </div>
-            <div className="mb-1 flex items-center gap-0.5 text-xs font-medium text-emerald-600">
-              <ArrowUpRight className="h-3.5 w-3.5" />
-              12%
-            </div>
           </div>
         </div>
 
@@ -309,10 +304,6 @@ export function AliasListPage() {
           <div className="flex items-end gap-2">
             <div className="text-3xl font-medium text-zinc-900 dark:text-zinc-100">
               {stats.domains}
-            </div>
-            <div className="mb-1 flex items-center gap-0.5 text-xs font-medium text-emerald-600">
-              <ArrowUpRight className="h-3.5 w-3.5" />
-              +2
             </div>
           </div>
         </div>
@@ -328,7 +319,6 @@ export function AliasListPage() {
             <div className="text-3xl font-medium text-emerald-700 dark:text-emerald-300">
               {stats.active}
             </div>
-            <div className="mb-1 text-xs font-medium text-zinc-400">100%</div>
           </div>
         </div>
 
@@ -342,10 +332,6 @@ export function AliasListPage() {
           <div className="flex items-end gap-2">
             <div className="text-3xl font-medium text-violet-700 dark:text-violet-300">
               {stats.tags}
-            </div>
-            <div className="mb-1 flex items-center gap-0.5 text-xs font-medium text-emerald-600">
-              <ArrowUpRight className="h-3.5 w-3.5" />
-              +5
             </div>
           </div>
         </div>
