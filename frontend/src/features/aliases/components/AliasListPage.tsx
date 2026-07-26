@@ -304,6 +304,10 @@ export function AliasListPage() {
       (a) =>
         a.email.toLowerCase().includes(q) ||
         (a.serviceName && a.serviceName.toLowerCase().includes(q)) ||
+        (a.description && a.description.toLowerCase().includes(q)) ||
+        (a.domain && a.domain.toLowerCase().includes(q)) ||
+        (a.destination && a.destination.toLowerCase().includes(q)) ||
+        (a.url && a.url.toLowerCase().includes(q)) ||
         a.tags.some((t) => t.toLowerCase().includes(q))
     );
   }, [aliases, searchQuery, view]);
