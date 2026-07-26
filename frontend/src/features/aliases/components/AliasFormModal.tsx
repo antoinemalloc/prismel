@@ -84,6 +84,13 @@ export function AliasFormModal({
     }
   }, [open, mode]);
 
+  // Auto-generate alias prefix when opening create modal with a domain set
+  useEffect(() => {
+    if (open && mode === "create" && domain && !prefix) {
+      handleGenerate();
+    }
+  }, [open, mode, domain]);
+
   if (!open) return null;
 
   const isEdit = mode === "edit";
@@ -217,13 +224,23 @@ export function AliasFormModal({
             ) : (
               <div className="flex items-center gap-2">
                 <div className="flex flex-1 shadow-sm">
-                  <input
-                    type="text"
-                    value={prefix}
-                    onChange={(e) => setPrefix(e.target.value)}
-                    placeholder="alias-name"
-                    className="flex-1 rounded-l-lg border border-r-0 border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
-                  />
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={prefix}
+                      onChange={(e) => setPrefix(e.target.value)}
+                      placeholder="alias-name"
+                      className="w-full rounded-l-lg border border-r-0 border-zinc-200 bg-zinc-50 py-2.5 pl-4 pr-9 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleGenerate}
+                      title="Generate"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-zinc-300"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </button>
+                  </div>
                   <select
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
@@ -234,14 +251,6 @@ export function AliasFormModal({
                     ))}
                   </select>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  title="Generate"
-                  className="rounded-lg border border-zinc-200 bg-zinc-100 p-2.5 text-zinc-600 transition-colors hover:bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </button>
               </div>
             )}
           </div>
