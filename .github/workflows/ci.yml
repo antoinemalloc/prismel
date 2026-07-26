@@ -50,8 +50,6 @@ jobs:
       - run: npm run build --workspaces --if-present
         env:
           VITE_BUILD_NUMBER: ${{ github.run_number }}
-      - run: npm run db:generate -w @prismel/backend
-        continue-on-error: true
 
       - name: Assemble archive
         run: |
