@@ -13,11 +13,12 @@ import {
   Check,
   AlignJustify,
   LayoutGrid,
+  X,
 } from "lucide-react";
 import { api } from "../../../lib/api";
-import { QuickGenerateModal } from "./QuickGenerateModal";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { AliasFormModal } from "./AliasFormModal";
+import { ModalPortal } from "../../../components/ModalPortal";
 
 const TAG_COLORS: Record<string, string> = {
   pro: "bg-blue-50 text-blue-700 ring-blue-700/10",
@@ -224,7 +225,9 @@ export function AliasListPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [formModalMode, setFormModalMode] = useState<"create" | "edit">("create");
-  const [generateModalOpen, setGenerateModalOpen] = useState(false);
+  const [quickGenResult, setQuickGenResult] = useState<string | null>(null);
+  const [quickGenError, setQuickGenError] = useState<string | null>(null);
+  const [quickGenLoading, setQuickGenLoading] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [aliasToDelete, setAliasToDelete] = useState<Alias | null>(null);
   const [aliasToEdit, setAliasToEdit] = useState<Alias | null>(null);
@@ -412,6 +415,32 @@ export function AliasListPage() {
     setFormModalVisible(true);
   };
 
+  const handleQuickGenerate = async () => {
+    setQuickGenLoading(true);
+    setQuickGenError(null);
+    try {
+      const settings = await fetch("/api/settings").then((r) => r.json());
+      const domains: string[] = JSON.parse(settings.alias_domains || "[]");
+      const targets: string[] = JSON.parse(settings.redirect_targets || "[]");
+      const domain = domains[0];
+      if (!domain) throw new Error("No domain configured");
+      const generated = await api.generateAlias(domain);
+      const destination = targets[0];
+      await api.createAlias({
+        email: generated.email,
+        domain,
+        destination: destination || undefined,
+        description: `Quick generated at ${new Date().toLocaleString()}`,
+      });
+      setQuickGenResult(generated.email);
+      fetchAliases();
+    } catch (e) {
+      setQuickGenError(e instanceof Error ? e.message : "Failed to create alias");
+    } finally {
+      setQuickGenLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -456,11 +485,12 @@ export function AliasListPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setGenerateModalOpen(true)}
+            onClick={handleQuickGenerate}
+            disabled={quickGenLoading}
             className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
-            <Zap className="h-4 w-4" />
-            Quick Generate
+            <Zap className={`h-4 w-4 ${quickGenLoading ? "animate-pulse" : ""}`} />
+            {quickGenLoading ? "Generating..." : "Quick Generate"}
           </button>
           <button
             onClick={() => {
@@ -687,7 +717,8 @@ export function AliasListPage() {
               Create Alias
             </button>
             <button
-              onClick={() => setGenerateModalOpen(true)}
+            onClick={handleQuickGenerate}
+            disabled={quickGenLoading}
               className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-5 py-2.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
               Generate One
@@ -888,11 +919,66 @@ export function AliasListPage() {
             : undefined
         }
       />
-      <QuickGenerateModal
-        open={generateModalOpen}
-        onClose={() => setGenerateModalOpen(false)}
-        onCreated={fetchAliases}
-      />
+      {quickGenResult && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/50 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-sm overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-5 dark:border-zinc-800">
+                <h2 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">Alias Created</h2>
+                <button
+                  onClick={() => setQuickGenResult(null)}
+                  className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:text-zinc-500 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-8 text-center">
+                <div className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">Your new alias</div>
+                <div className="break-all font-mono text-2xl font-medium text-zinc-900 dark:text-zinc-100">{quickGenResult}</div>
+                <button
+                  onClick={(e) => handleCopy(e, quickGenResult, quickGenResult)}
+                  className="mt-6 inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                >
+                  {copiedId === quickGenResult ? (
+                    <Check className="h-4 w-4 text-emerald-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                  {copiedId === quickGenResult ? "Copied!" : "Copy to clipboard"}
+                </button>
+              </div>
+              <div className="flex justify-end border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-950/50">
+                <button
+                  onClick={() => setQuickGenResult(null)}
+                  className="rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+      {quickGenError && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-zinc-900/50 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-sm overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="border-b border-zinc-100 px-6 py-5 dark:border-zinc-800">
+                <h2 className="text-lg font-medium text-red-700 dark:text-red-300">Error</h2>
+              </div>
+              <div className="p-6 text-sm text-zinc-600 dark:text-zinc-400">{quickGenError}</div>
+              <div className="flex justify-end border-t border-zinc-100 bg-zinc-50/50 px-6 py-4 dark:border-zinc-800 dark:bg-zinc-950/50">
+                <button
+                  onClick={() => setQuickGenError(null)}
+                  className="rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
       <DeleteConfirmModal
         open={deleteModalOpen}
         alias={aliasToDelete}
