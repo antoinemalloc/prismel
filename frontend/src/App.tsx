@@ -37,7 +37,7 @@ function SidebarNavLink({
       to={to}
       onClick={onClick}
       aria-current={isActive ? "page" : undefined}
-      className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150 md:justify-center lg:justify-start ${
+      className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
         isActive
           ? "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
           : "text-zinc-500 hover:bg-zinc-200/50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
@@ -60,7 +60,7 @@ export function App() {
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       {/* Mobile top bar */}
-      <div className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-zinc-200 bg-zinc-50/80 px-4 backdrop-blur md:hidden dark:border-zinc-800 dark:bg-zinc-950/80">
+      <div className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-zinc-200 bg-zinc-50/80 px-4 backdrop-blur lg:hidden dark:border-zinc-800 dark:bg-zinc-950/80">
         <div className="flex items-center gap-2.5">
           <img src="/icon.png" alt="Prismel" className="h-7 w-7 rounded-md" />
           <span className="text-lg font-medium tracking-tight">Prismel</span>
@@ -77,14 +77,14 @@ export function App() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-zinc-900/20 md:hidden"
+          className="fixed inset-0 z-40 bg-zinc-900/20 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-64 border-r border-zinc-200 bg-zinc-100 transition-transform duration-200 ease-out md:translate-x-0 md:w-20 lg:w-64 dark:border-zinc-800 dark:bg-zinc-900 ${
+        className={`fixed left-0 top-0 z-50 h-screen w-44 border-r border-zinc-200 bg-zinc-100 transition-transform duration-200 ease-out lg:translate-x-0 dark:border-zinc-800 dark:bg-zinc-900 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -100,7 +100,7 @@ export function App() {
             </span>
             <button
               onClick={() => setMobileOpen(false)}
-              className="ml-auto rounded-lg p-2 text-zinc-500 hover:bg-zinc-200 md:hidden dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="ml-auto rounded-lg p-2 text-zinc-500 hover:bg-zinc-200 lg:hidden dark:text-zinc-400 dark:hover:bg-zinc-800"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />
@@ -129,7 +129,7 @@ export function App() {
                 setAboutOpen(true);
                 closeMobile();
               }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-500 transition-colors duration-150 hover:bg-zinc-200/50 hover:text-zinc-900 md:justify-center lg:justify-start dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-zinc-500 transition-colors duration-150 hover:bg-zinc-200/50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/50 dark:hover:text-zinc-100"
             >
               <HelpCircle className="h-5 w-5 flex-shrink-0" />
               <span className="inline">About</span>
@@ -146,8 +146,8 @@ export function App() {
         </div>
       </aside>
 
-      <main className="min-h-screen p-4 pt-14 md:pl-20 md:pt-0 lg:pl-64 lg:p-8">
-        <div className="mx-auto max-w-7xl animate-fade-in">
+      <main className="min-h-screen p-4 pt-14 lg:ml-48 lg:p-8">
+        <div className="animate-fade-in">
           <SyncProvider>
             <Routes>
               <Route path="/" element={<AliasListPage />} />

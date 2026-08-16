@@ -30,6 +30,8 @@ jobs:
       - run: npm run build --workspaces --if-present
         env:
           VITE_BUILD_NUMBER: ${{ github.run_number }}
+          VITE_COMMIT_HASH: ${{ github.sha }}
+          VITE_COMMIT_DATE: ${{ github.event.head_commit.timestamp }}
 
   deploy:
     needs: test
@@ -50,6 +52,8 @@ jobs:
       - run: npm run build --workspaces --if-present
         env:
           VITE_BUILD_NUMBER: ${{ github.run_number }}
+          VITE_COMMIT_HASH: ${{ github.sha }}
+          VITE_COMMIT_DATE: ${{ github.event.head_commit.timestamp }}
 
       - name: Assemble archive
         run: |
