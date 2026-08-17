@@ -236,7 +236,7 @@ export function AliasListPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(50);
-  const [view, setView] = useState<"all" | "active" | "inactive">("all");
+  const [view, setView] = useState<"all" | "active" | "inactive">("active");
   const [viewMode, setViewMode] = useState<"row" | "cards">(() => {
     const stored = localStorage.getItem("prismel-view-mode");
     return stored === "cards" ? "cards" : "row";
@@ -581,16 +581,6 @@ export function AliasListPage() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-800 dark:bg-zinc-900">
             <button
-              onClick={() => setView("all")}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                view === "all"
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100"
-                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-              }`}
-            >
-              All
-            </button>
-            <button
               onClick={() => setView("active")}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 view === "active"
@@ -609,6 +599,16 @@ export function AliasListPage() {
               }`}
             >
               Inactive
+            </button>
+            <button
+              onClick={() => setView("all")}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                view === "all"
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              All
             </button>
           </div>
 
