@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { TagChip } from "./TagChip";
 
 interface TagInputProps {
-  /** Currently selected tags (by id). */
+  /** Currently selected tags. */
   value: Tag[];
   /** Called whenever the selection changes. */
   onChange: (tags: Tag[]) => void;
@@ -16,16 +16,16 @@ interface TagInputProps {
 
 /**
  * Tag input with chip display + autocomplete dropdown.
- * - Dropdown opens after the first character is typed.
+ * - Dropdown opens on focus and during typing.
  * - Filters existing tags live (case-insensitive).
  * - Keyboard: ArrowUp/Down navigate, Enter selects, Escape closes, Tab accepts.
- * - Space OR comma in the input commits the typed text as a tag.
+ * - Space OR comma commits the typed text as a new tag.
  * - Selecting a tag or committing text adds it to the chips.
  *
  * Tags typed by the user are kept as local drafts (negative id) until the
- * parent form submits. The backend `tagService.resolveNames` creates the real
- * rows from names at that point. This means hitting Cancel never leaves an
- * orphan tag in the database.
+ * parent form submits. The backend `tagService.resolveInputs` creates the
+ * real rows from names at that point. Hitting Cancel never leaves an orphan
+ * tag in the database.
  */
 export function TagInput({
   value,
@@ -40,7 +40,6 @@ export function TagInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Load the full tag list on mount. Used for the autocomplete dropdown only.
   useEffect(() => {
     api
       .listTags()
@@ -69,7 +68,6 @@ export function TagInput({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const selectedIds = useMemo(() => new Set(value.map((t) => t.id)), [value]);
   const selectedNames = useMemo(
     () => new Set(value.map((t) => t.name.toLowerCase())),
     [value],
@@ -77,7 +75,7 @@ export function TagInput({
 
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const pool = allTags.filter((t) => !selectedIds.has(t.id));
+    const pool = allTags.filter((t) => !selectedNames.has(t.name.toLowerCase()));
     if (!q) return pool;
     return pool
       .filter((t) => t.name.toLowerCase().includes(q))
@@ -87,17 +85,12 @@ export function TagInput({
         if (ai !== bi) return ai - bi;
         return a.name.localeCompare(b.name);
       });
-  }, [allTags, query, selectedIds]);
+  }, [allTags, query, selectedNames]);
 
-  const canCreate =
-    query.trim().length > 0 &&
-    !selectedNames.has(query.trim().toLowerCase()) &&
-    !suggestions.some((s) => s.name === query.trim().toLowerCase());
+  const canCreate = query.trim().length > 0 && !selectedNames.has(query.trim().toLowerCase());
 
   const addTag = (tag: Tag) => {
-    if (selectedIds.has(tag.id) || selectedNames.has(tag.name.toLowerCase())) {
-      return;
-    }
+    if (selectedNames.has(tag.name.toLowerCase())) return;
     onChange([...value, tag]);
     setQuery("");
     setHighlight(0);
@@ -111,7 +104,7 @@ export function TagInput({
   /**
    * Commit the typed text as a local draft tag (not persisted yet).
    * Real persistence happens when the parent form submits — the names are
-   * sent to the backend which resolves them via `tagService.resolveNames`.
+   * sent to the backend which resolves them via `tagService.resolveInputs`.
    * Draft ids are negative so they can never collide with real tag ids.
    */
   const commitTyped = () => {
@@ -136,29 +129,23 @@ export function TagInput({
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setOpen(true);
-      setHighlight((h) => Math.min(h + 1, suggestions.length - 1 + (canCreate ? 1 : 0)));
+      setHighlight((h) => Math.min(h + 1, suggestions.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlight((h) => Math.max(h - 1, 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      const idx = highlight;
-      if (idx < suggestions.length) {
-        addTag(suggestions[idx]);
-      } else if (canCreate) {
+      if (highlight < suggestions.length) {
+        addTag(suggestions[highlight]);
+      } else {
         commitTyped();
       }
     } else if (e.key === "Escape") {
       setOpen(false);
     } else if (e.key === "Tab") {
-      if (open && (suggestions.length > 0 || canCreate)) {
+      if (open && suggestions[highlight]) {
         e.preventDefault();
-        const idx = highlight;
-        if (idx < suggestions.length) {
-          addTag(suggestions[idx]);
-        } else if (canCreate) {
-          commitTyped();
-        }
+        addTag(suggestions[highlight]);
       }
     } else if (e.key === " " || e.key === ",") {
       if (query.trim()) {
@@ -206,7 +193,7 @@ export function TagInput({
         )}
       </div>
 
-      {open && (suggestions.length > 0 || canCreate) && (
+      {open && suggestions.length > 0 && (
         <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-56 overflow-auto rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
           {suggestions.map((tag, i) => (
             <button
@@ -227,26 +214,6 @@ export function TagInput({
               <span className="text-zinc-900 dark:text-zinc-100">{tag.name}</span>
             </button>
           ))}
-          {canCreate && (
-            <button
-              type="button"
-              onClick={commitTyped}
-              onMouseEnter={() => setHighlight(suggestions.length)}
-              className={`flex w-full items-center gap-2 border-t border-zinc-100 px-3 py-2 text-left text-sm transition-colors dark:border-zinc-800 ${
-                highlight === suggestions.length
-                  ? "bg-zinc-100 dark:bg-zinc-800"
-                  : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-              }`}
-            >
-              <span className="inline-block h-3 w-3 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-              <span className="text-zinc-600 dark:text-zinc-300">
-                Add new tag{" "}
-                <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                  "{query.trim()}"
-                </span>
-              </span>
-            </button>
-          )}
         </div>
       )}
 

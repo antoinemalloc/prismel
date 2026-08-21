@@ -7,11 +7,6 @@ export const tagController = {
     res.json(tags);
   },
 
-  search(req: Request, res: Response) {
-    const q = (req.query.q as string | undefined) ?? "";
-    res.json(tagService.search(q));
-  },
-
   create(req: Request, res: Response) {
     try {
       const tag = tagService.create(req.body);

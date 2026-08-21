@@ -1,6 +1,6 @@
 import { db } from "../../db/index.js";
 import { tags, aliasTags } from "../../db/schema.js";
-import { eq, sql, like } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Tag, TagWithUsage, CreateTagInput, UpdateTagInput } from "../../types/tag.js";
 
 type TagRow = {
@@ -51,16 +51,6 @@ export const tagRepository = {
       .where(eq(tags.name, name.toLowerCase()))
       .get() as TagRow | undefined;
     return row ? toTag(row) : undefined;
-  },
-
-  search(query: string): Tag[] {
-    const q = `%${query.toLowerCase()}%`;
-    const rows = db
-      .select()
-      .from(tags)
-      .where(like(sql`lower(${tags.name})`, q))
-      .all() as TagRow[];
-    return rows.map(toTag);
   },
 
   create(input: CreateTagInput): Tag {
@@ -116,22 +106,6 @@ export const tagRepository = {
       map.set(row.aliasId, list);
     }
     return map;
-  },
-
-  /** Get tags for a single alias. */
-  getTagsForAlias(aliasId: string): Tag[] {
-    const rows = db
-      .select({
-        id: tags.id,
-        name: tags.name,
-        color: tags.color,
-        createdAt: tags.createdAt,
-      })
-      .from(aliasTags)
-      .innerJoin(tags, eq(tags.id, aliasTags.tagId))
-      .where(eq(aliasTags.aliasId, aliasId))
-      .all();
-    return rows.map(toTag);
   },
 
   /** Replace the tag set for one alias. */

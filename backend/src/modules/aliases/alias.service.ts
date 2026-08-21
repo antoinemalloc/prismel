@@ -148,7 +148,9 @@ export const aliasService = {
         .map((t) => t.id)
         .filter((oldId) => !tags.some((t) => t.id === oldId));
       aliasRepository.setTagsForAlias(id, tags);
-      tagService.cleanupOrphans(removedTagIds);
+      for (const tagId of removedTagIds) {
+        tagService.cleanupIfOrphan(tagId);
+      }
     }
 
     return updated ? aliasRepository.findById(id) : undefined;
@@ -176,7 +178,9 @@ export const aliasService = {
 
     const deleted = aliasRepository.delete(id);
     if (deleted) {
-      tagService.cleanupOrphans(removedTagIds);
+      for (const tagId of removedTagIds) {
+        tagService.cleanupIfOrphan(tagId);
+      }
     }
     return deleted;
   },

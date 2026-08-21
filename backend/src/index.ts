@@ -42,7 +42,6 @@ app.post("/api/settings/test-connection", settingsController.testConnection);
 
 // Tag routes
 app.get("/api/tags", tagController.list);
-app.get("/api/tags/search", tagController.search);
 app.post("/api/tags", validateCreateTag, tagController.create);
 app.patch("/api/tags/:id", validateUpdateTag, tagController.update);
 app.delete("/api/tags/:id", tagController.delete);

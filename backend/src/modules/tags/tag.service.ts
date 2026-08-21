@@ -7,25 +7,8 @@ export const tagService = {
     return tagRepository.listAll();
   },
 
-  search(query: string): Tag[] {
-    if (!query.trim()) return [];
-    return tagRepository.search(query.trim());
-  },
-
   findById(id: number): Tag | undefined {
     return tagRepository.findById(id);
-  },
-
-  /**
-   * Find a tag by name, or create it with a frozen random pastel color.
-   * Used by alias.service at create/update time so unknown tags become
-   * first-class Tag rows without an explicit creation step.
-   */
-  getOrCreateByName(name: string): Tag {
-    const normalized = name.toLowerCase().trim();
-    const existing = tagRepository.findByName(normalized);
-    if (existing) return existing;
-    return tagRepository.create({ name: normalized, color: randomPastel() });
   },
 
   /**
@@ -49,11 +32,6 @@ export const tagService = {
       result.push(tagRepository.create({ name: normalized, color }));
     }
     return result;
-  },
-
-  /** Convenience wrapper for callers that only have names (no colors). */
-  resolveNames(names: string[]): Tag[] {
-    return this.resolveInputs(names.map((name) => ({ name })));
   },
 
   create(input: CreateTagInput): Tag {
@@ -95,14 +73,5 @@ export const tagService = {
       return this.delete(id);
     }
     return false;
-  },
-
-  /** Cleanup multiple tag ids at once. Returns the number deleted. */
-  cleanupOrphans(ids: number[]): number {
-    let deleted = 0;
-    for (const id of ids) {
-      if (this.cleanupIfOrphan(id)) deleted++;
-    }
-    return deleted;
   },
 };

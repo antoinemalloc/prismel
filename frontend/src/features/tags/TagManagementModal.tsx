@@ -181,7 +181,7 @@ export function TagManagementModal({
                       />
                       <input
                         type="color"
-                        value={normalizeHex(tag.color)}
+                        value={tag.color}
                         onChange={(e) => handleColorChange(tag, e.target.value)}
                         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                         aria-label={`Change color of ${tag.name}`}
@@ -258,21 +258,6 @@ export function TagManagementModal({
       )}
     </ModalPortal>
   );
-}
-
-function normalizeHex(color: string): string {
-  // Native color picker only accepts #rrggbb. Convert hsl(...) or #rgb to #rrggbb.
-  if (color.startsWith("#")) {
-    if (color.length === 4) {
-      const r = color[1];
-      const g = color[2];
-      const b = color[3];
-      return `#${r}${r}${g}${g}${b}${b}`;
-    }
-    return color;
-  }
-  // Fallback: assume already a hex; if not, the picker shows its default.
-  return "#cccccc";
 }
 
 function randomPastelHex(): string {

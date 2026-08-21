@@ -55,9 +55,6 @@ export const api = {
   // Tag CRUD
   listTags: () => request<TagWithUsage[]>("/tags"),
 
-  searchTags: (q: string) =>
-    request<Tag[]>(`/tags/search?q=${encodeURIComponent(q)}`),
-
   createTag: (input: CreateTagInput) =>
     request<Tag>("/tags", {
       method: "POST",
