@@ -2,6 +2,7 @@ import { aliasRepository } from "./alias.repository.js";
 import type { Alias, CreateAliasInput, UpdateAliasInput, GeneratedAlias, SyncResult } from "../../types/alias.js";
 import { generateAlias, isDomainValid } from "./alias.generator.js";
 import { settingsService } from "../settings/settings.service.js";
+import { tagService } from "../tags/tag.service.js";
 import { getProviderClient } from "../../providers/registry.js";
 import { resolveFavicon, randomPastelTint } from "../../lib/favicon.js";
 import crypto from "crypto";
@@ -46,6 +47,8 @@ export const aliasService = {
       faviconTint = resolved?.tint ?? randomPastelTint();
     }
 
+    const tags = tagService.resolveInputs(input.tags ?? []);
+
     const alias: Alias = {
       id: crypto.randomUUID(),
       email: input.email,
@@ -58,7 +61,7 @@ export const aliasService = {
       favicon: faviconUrl,
       tint: faviconTint,
       description: input.description,
-      tags: input.tags || [],
+      tags,
       active: true,
       createdAt: now,
       updatedAt: now,
@@ -135,11 +138,20 @@ export const aliasService = {
       }
     }
     if (input.description !== undefined) data.description = input.description || null;
-    if (input.tags !== undefined) data.tags = input.tags;
 
     const updated = aliasRepository.update(id, data as Partial<Alias>);
 
-    return updated;
+    // Tags are replaced as a whole set; unknown names become first-class Tag rows.
+    if (input.tags !== undefined) {
+      const tags = tagService.resolveInputs(input.tags);
+      const removedTagIds = existing.tags
+        .map((t) => t.id)
+        .filter((oldId) => !tags.some((t) => t.id === oldId));
+      aliasRepository.setTagsForAlias(id, tags);
+      tagService.cleanupOrphans(removedTagIds);
+    }
+
+    return updated ? aliasRepository.findById(id) : undefined;
   },
 
   async delete(id: string): Promise<boolean> {
@@ -157,7 +169,16 @@ export const aliasService = {
       }
     }
 
-    return aliasRepository.delete(id);
+    // Capture tag ids before delete — the alias row going cascades the
+    // alias_tags junction, and any tag that just lost its last reference
+    // becomes an orphan we should clean up.
+    const removedTagIds = alias.tags.map((t) => t.id);
+
+    const deleted = aliasRepository.delete(id);
+    if (deleted) {
+      tagService.cleanupOrphans(removedTagIds);
+    }
+    return deleted;
   },
 
   generate(domain: string): GeneratedAlias | null {
@@ -225,13 +246,25 @@ export const aliasService = {
           const progress = `[${i + 1}/${redirIds.length}]`;
 
           try {
-            const redir = await syncClient.getRedirection(domain, String(redirId));
-            const providerId = String(redir.id);
+            const redir = await syncClient.getRedirection(domain, redirId);
+            const providerId = redir.id;
             remoteProviderIds.add(providerId);
             const existing = aliasRepository.findByProviderId(providerId);
 
             if (!existing) {
-              const alias = syncClient.mapToAlias(domain, redir);
+              const now = new Date().toISOString();
+              const alias: Alias = {
+                id: crypto.randomUUID(),
+                email: redir.from,
+                provider: syncClient.name,
+                providerId: redir.id,
+                domain,
+                destination: redir.to,
+                tags: [],
+                active: true,
+                createdAt: now,
+                updatedAt: now,
+              };
               aliasRepository.create(alias);
               result.new++;
               imported++;

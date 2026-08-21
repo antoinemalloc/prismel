@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { settingsService } from "./settings.service.js";
-import { OvhClient, OvhApiError } from "../../providers/ovh/ovh.client.js";
+import { getProviderClient, getSupportedProviders } from "../../providers/registry.js";
 
 export const settingsController = {
   getAll(_req: Request, res: Response) {
@@ -15,22 +15,41 @@ export const settingsController = {
 
   testConnection: async (req: Request, res: Response) => {
     try {
-      const { ovh_endpoint, ovh_application_key, ovh_application_secret, ovh_consumer_key } = req.body ?? {};
-      let result: { success: true };
-      if (ovh_endpoint) {
-        result = await OvhClient.testWith({
-          endpoint: ovh_endpoint,
-          applicationKey: ovh_application_key ?? "",
-          applicationSecret: ovh_application_secret ?? "",
-          consumerKey: ovh_consumer_key ?? "",
-        });
+      const { provider, overrides } = req.body ?? {};
+      const merged: Record<string, string> = { ...settingsService.getAll(), ...(overrides ?? {}) };
+
+      let clients: ReturnType<typeof getProviderClient>[];
+      if (provider) {
+        const client = getProviderClient(provider);
+        if (!client) {
+          return res.status(404).json({ success: false, error: `Unknown provider: ${provider}` });
+        }
+        clients = [client];
       } else {
-        result = await OvhClient.test();
+        // No provider specified: pick the first supported provider whose configFields are populated.
+        const supported = getSupportedProviders()
+          .map((n) => getProviderClient(n))
+          .filter((c): c is NonNullable<typeof c> => !!c);
+        const populated = supported.filter((c) => c.configFields.some((f) => merged[f]));
+        clients = populated.length > 0 ? populated : supported.slice(0, 1);
+        if (clients.length === 0) {
+          return res.status(400).json({ success: false, error: "No providers available" });
+        }
       }
-      res.json(result);
+
+      let lastError: Error | undefined;
+      for (const client of clients) {
+        if (!client) continue;
+        try {
+          await client.testConnection(merged);
+          return res.json({ success: true });
+        } catch (e) {
+          lastError = e as Error;
+        }
+      }
+      res.status(400).json({ success: false, error: lastError?.message ?? "Connection test failed" });
     } catch (err) {
-      const message = err instanceof OvhApiError ? err.message : "Connection test failed";
-      res.status(400).json({ success: false, error: message });
+      res.status(400).json({ success: false, error: (err as Error).message });
     }
   },
 };

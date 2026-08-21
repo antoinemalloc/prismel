@@ -9,6 +9,11 @@ import {
 } from "./validators/alias.validator.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { settingsController } from "./modules/settings/settings.controller.js";
+import { tagController } from "./modules/tags/tag.controller.js";
+import {
+  validateCreateTag,
+  validateUpdateTag,
+} from "./validators/tag.validator.js";
 import { getProviderClient, getSupportedProviders } from "./providers/registry.js";
 import { settingsService } from "./modules/settings/settings.service.js";
 import { closeDb } from "./db/index.js";
@@ -34,6 +39,13 @@ app.post("/api/aliases/sync", aliasController.sync);
 app.get("/api/settings", settingsController.getAll);
 app.put("/api/settings", settingsController.update);
 app.post("/api/settings/test-connection", settingsController.testConnection);
+
+// Tag routes
+app.get("/api/tags", tagController.list);
+app.get("/api/tags/search", tagController.search);
+app.post("/api/tags", validateCreateTag, tagController.create);
+app.patch("/api/tags/:id", validateUpdateTag, tagController.update);
+app.delete("/api/tags/:id", tagController.delete);
 
 // Provider routes
 app.get("/api/settings/providers", (_req, res) => {

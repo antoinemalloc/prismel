@@ -10,9 +10,11 @@ import {
   Palette,
   Plus,
   Trash2,
+  Tag,
 } from "lucide-react";
 import { getProviderForm } from "../../providers/registry";
 import { ThemePicker } from "../../components/ThemePicker";
+import { TagManagementModal } from "../tags/TagManagementModal";
 
 interface SettingsData {
   [key: string]: string;
@@ -29,6 +31,7 @@ export function SettingsPage() {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [providerList, setProviderList] = useState<string[]>([]);
+  const [tagModalOpen, setTagModalOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -110,10 +113,8 @@ export function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ovh_endpoint: settings.ovh_endpoint,
-          ovh_application_key: settings.ovh_application_key,
-          ovh_application_secret: settings.ovh_application_secret,
-          ovh_consumer_key: settings.ovh_consumer_key,
+          provider: selectedProvider,
+          overrides: settings,
         }),
       });
       const data = await res.json();
@@ -358,6 +359,31 @@ export function SettingsPage() {
             </div>
           </div>
 
+          {/* Tags */}
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300">
+                <Tag className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-medium text-zinc-900 dark:text-zinc-100">Tags</h2>
+                <p className="text-xs text-zinc-500">Rename, recolor, or delete tags globally</p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-sm text-zinc-500">
+                Open the tag manager to review usage, change colors, or remove unused tags.
+              </p>
+              <button
+                type="button"
+                onClick={() => setTagModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                Manage tags
+              </button>
+            </div>
+          </div>
+
           {/* Redirect Targets */}
           <div className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-center gap-3 border-b border-zinc-100 pb-4 dark:border-zinc-800">
@@ -384,6 +410,10 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
+      <TagManagementModal
+        open={tagModalOpen}
+        onClose={() => setTagModalOpen(false)}
+      />
     </div>
   );
 }

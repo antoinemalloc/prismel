@@ -5,6 +5,10 @@ export const settingsService = {
     return settingsRepository.getAll();
   },
 
+  get(key: string): string | undefined {
+    return settingsRepository.get(key);
+  },
+
   update(data: Record<string, string>) {
     settingsRepository.setMany(data);
     return settingsRepository.getAll();

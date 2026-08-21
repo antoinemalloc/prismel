@@ -19,25 +19,8 @@ import { api } from "../../../lib/api";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { AliasFormModal } from "./AliasFormModal";
 import { ModalPortal } from "../../../components/ModalPortal";
-
-const TAG_COLORS: Record<string, string> = {
-  pro: "bg-blue-50 text-blue-700 ring-blue-700/10",
-  personal: "bg-violet-50 text-violet-700 ring-violet-700/10",
-  perso: "bg-violet-50 text-violet-700 ring-violet-700/10",
-  shopping: "bg-amber-50 text-amber-700 ring-amber-700/10",
-  newsletter: "bg-rose-50 text-rose-700 ring-rose-700/10",
-  social: "bg-violet-50 text-violet-700 ring-violet-700/10",
-  public: "bg-sky-50 text-sky-700 ring-sky-700/10",
-  contact: "bg-zinc-100 text-zinc-700 ring-zinc-700/10",
-  support: "bg-emerald-50 text-emerald-700 ring-emerald-700/10",
-};
-
-function getTagClasses(tag: string): string {
-  return (
-    TAG_COLORS[tag] ||
-    "bg-zinc-50 text-zinc-600 ring-zinc-500/10"
-  );
-}
+import { TagChip } from "./TagChip";
+import { TagManagementModal } from "../../tags/TagManagementModal";
 
 const INACTIVE_BADGE_CLASSES =
   "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide border bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-300 dark:border-red-900/40";
@@ -191,14 +174,7 @@ function FaviconCard({
       <div className="mt-auto flex items-center justify-between pt-4">
         <div className="flex flex-wrap gap-1.5">
           {alias.tags.map((tag) => (
-            <span
-              key={tag}
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ring-1 ring-inset ${getTagClasses(
-                tag
-              )}`}
-            >
-              {tag}
-            </span>
+            <TagChip key={tag.id} tag={tag} />
           ))}
           {!alias.active && (
             <span className={INACTIVE_BADGE_CLASSES}>Inactive</span>
@@ -232,6 +208,7 @@ export function AliasListPage() {
   const [aliasToDelete, setAliasToDelete] = useState<Alias | null>(null);
   const [aliasToEdit, setAliasToEdit] = useState<Alias | null>(null);
   const [formModalVisible, setFormModalVisible] = useState(true);
+  const [tagModalOpen, setTagModalOpen] = useState(false);
   const [sortKey, setSortKey] = useState<keyof Alias | null>("createdAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -311,7 +288,7 @@ export function AliasListPage() {
         (a.domain && a.domain.toLowerCase().includes(q)) ||
         (a.destination && a.destination.toLowerCase().includes(q)) ||
         (a.url && a.url.toLowerCase().includes(q)) ||
-        a.tags.some((t) => t.toLowerCase().includes(q))
+        a.tags.some((t) => t.name.toLowerCase().includes(q))
     );
   }, [aliases, searchQuery, view]);
 
@@ -393,7 +370,7 @@ export function AliasListPage() {
 
   const stats = useMemo(() => {
     const domains = new Set(aliases.map((a) => a.domain));
-    const tags = new Set(aliases.flatMap((a) => a.tags));
+    const tags = new Set(aliases.flatMap((a) => a.tags.map((t) => t.id)));
     return {
       total: aliases.length,
       domains: domains.size,
@@ -561,7 +538,11 @@ export function AliasListPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <button
+          type="button"
+          onClick={() => setTagModalOpen(true)}
+          className="rounded-xl border border-zinc-200 bg-white p-5 text-left transition-colors hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
+        >
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-medium text-zinc-500">Tags</span>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300">
@@ -573,7 +554,7 @@ export function AliasListPage() {
               {stats.tags}
             </div>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Toolbar */}
@@ -834,14 +815,7 @@ export function AliasListPage() {
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-1.5">
                         {alias.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide ring-1 ring-inset ${getTagClasses(
-                              tag
-                            )}`}
-                          >
-                            {tag}
-                          </span>
+                          <TagChip key={tag.id} tag={tag} />
                         ))}
                         {!alias.active && (
                           <span className={INACTIVE_BADGE_CLASSES}>Inactive</span>
@@ -992,6 +966,11 @@ export function AliasListPage() {
           setFormModalOpen(false);
           setAliasToEdit(null);
         }}
+      />
+      <TagManagementModal
+        open={tagModalOpen}
+        onClose={() => setTagModalOpen(false)}
+        onChanged={fetchAliases}
       />
     </div>
   );

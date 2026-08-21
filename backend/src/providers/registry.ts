@@ -1,27 +1,36 @@
 import { OvhClient } from "./ovh/ovh.client.js";
-import { mapRedirectionToAlias, type OvhRedirection } from "./ovh/ovh.mapper.js";
-import type { Alias } from "../types/alias.js";
+import type { RemoteRedirection } from "./types.js";
+
+export type { RemoteRedirection };
 
 export interface ProviderClient {
   readonly name: string;
-  /** Create a redirection, returns the provider-specific ID */
+  /** Settings keys this provider requires for configuration and connection testing. */
+  readonly configFields: readonly string[];
+  /** Create a redirection, returns the opaque provider-specific ID. */
   createRedirection(domain: string, from: string, to: string): Promise<string>;
-  /** Delete a redirection */
+  /** Delete a redirection. */
   deleteRedirection(domain: string, providerId: string): Promise<void>;
-  /** Verify a redirection was deleted (throws if it still exists) */
+  /** Verify a redirection was deleted (throws if it still exists). */
   verifyDeleted(domain: string, providerId: string): Promise<void>;
-  /** Update a redirection destination */
+  /** Update a redirection destination. */
   updateRedirection(domain: string, providerId: string, to: string): Promise<void>;
-  /** List all redirection IDs for a domain */
-  listRedirectionIds(domain: string): Promise<number[]>;
-  /** Get a single redirection detail */
-  getRedirection(domain: string, providerId: string): Promise<{ id: number; from: string; to: string }>;
-  /** Map a raw redirection to an Alias */
-  mapToAlias(domain: string, raw: { id: number; from: string; to: string }): Alias;
+  /** List all redirection IDs for a domain (opaque). */
+  listRedirectionIds(domain: string): Promise<string[]>;
+  /** Get a single redirection detail. */
+  getRedirection(domain: string, providerId: string): Promise<RemoteRedirection>;
+  /** Test the provider connection. `allSettings` is the merged record (saved + overrides). */
+  testConnection(allSettings: Record<string, string>): Promise<{ success: true }>;
 }
 
 class OvhProviderClient implements ProviderClient {
   readonly name = "OVH";
+  readonly configFields = [
+    "ovh_endpoint",
+    "ovh_application_key",
+    "ovh_application_secret",
+    "ovh_consumer_key",
+  ] as const;
   private client = new OvhClient();
 
   async createRedirection(domain: string, from: string, to: string): Promise<string> {
@@ -52,16 +61,29 @@ class OvhProviderClient implements ProviderClient {
     await this.client.request("PUT", `/email/domain/${domain}/redirection/${providerId}`, { to });
   }
 
-  async listRedirectionIds(domain: string): Promise<number[]> {
-    return this.client.request<number[]>("GET", `/email/domain/${domain}/redirection`);
+  async listRedirectionIds(domain: string): Promise<string[]> {
+    const ids = await this.client.request<number[]>("GET", `/email/domain/${domain}/redirection`);
+    return ids.map(String);
   }
 
-  async getRedirection(domain: string, providerId: string): Promise<{ id: number; from: string; to: string }> {
-    return this.client.request<OvhRedirection>("GET", `/email/domain/${domain}/redirection/${providerId}`);
+  async getRedirection(domain: string, providerId: string): Promise<RemoteRedirection> {
+    const raw = await this.client.request<{ id: number; from: string; to: string }>(
+      "GET",
+      `/email/domain/${domain}/redirection/${providerId}`,
+    );
+    return { id: String(raw.id), from: raw.from, to: raw.to };
   }
 
-  mapToAlias(domain: string, raw: { id: number; from: string; to: string }): Alias {
-    return mapRedirectionToAlias(domain, raw as OvhRedirection);
+  async testConnection(allSettings: Record<string, string>): Promise<{ success: true }> {
+    if (allSettings.ovh_endpoint) {
+      return OvhClient.testWith({
+        endpoint: allSettings.ovh_endpoint,
+        applicationKey: allSettings.ovh_application_key || "",
+        applicationSecret: allSettings.ovh_application_secret || "",
+        consumerKey: allSettings.ovh_consumer_key || "",
+      });
+    }
+    return OvhClient.test();
   }
 }
 

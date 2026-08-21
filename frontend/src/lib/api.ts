@@ -1,4 +1,5 @@
 import type { Alias, CreateAliasInput, UpdateAliasInput, GeneratedAlias, SyncResult } from "@/types/alias";
+import type { Tag, TagWithUsage, CreateTagInput, UpdateTagInput } from "@/types/tag";
 
 const API_BASE = "/api";
 
@@ -50,4 +51,25 @@ export const api = {
 
   getRemoteCount: (provider: string) =>
     request<{ count: number }>(`/providers/${provider}/remote-count`),
+
+  // Tag CRUD
+  listTags: () => request<TagWithUsage[]>("/tags"),
+
+  searchTags: (q: string) =>
+    request<Tag[]>(`/tags/search?q=${encodeURIComponent(q)}`),
+
+  createTag: (input: CreateTagInput) =>
+    request<Tag>("/tags", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  updateTag: (id: number, input: UpdateTagInput) =>
+    request<Tag>(`/tags/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+
+  deleteTag: (id: number) =>
+    request<void>(`/tags/${id}`, { method: "DELETE" }),
 };

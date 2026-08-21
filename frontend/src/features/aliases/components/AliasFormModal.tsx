@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import type { Alias, CreateAliasInput, UpdateAliasInput } from "@/types/alias";
+import type { Tag } from "@/types/tag";
 import { X, RefreshCw, Trash2, ToggleLeft, ToggleRight, Loader2 } from "lucide-react";
 import { api } from "../../../lib/api";
 import { RedirectCombobox } from "./RedirectCombobox";
 import { ModalPortal } from "../../../components/ModalPortal";
+import { TagInput } from "./TagInput";
 
 interface AliasFormModalProps {
   open: boolean;
@@ -31,7 +33,7 @@ export function AliasFormModal({
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState(false);
   const [description, setDescription] = useState("");
-  const [tags, setTags] = useState("");
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [redirectTargets, setRedirectTargets] = useState<string[]>([]);
@@ -45,7 +47,7 @@ export function AliasFormModal({
       setUrl(alias.url || "");
       setDestination(alias.destination || "");
       setDescription(alias.description || "");
-      setTags(alias.tags.join(", "));
+      setSelectedTags(alias.tags);
       setIsActive(alias.active);
     }
   }, [mode, alias]);
@@ -127,11 +129,14 @@ export function AliasFormModal({
       setUrlError(true);
       return;
     }
-    const parsedTags = tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-    if (parsedTags.some((t) => t.toLowerCase() === "inactive")) {
+    const tagInputs = selectedTags.map((t) => ({
+      name: t.name.toLowerCase(),
+      // Only send color for local drafts (negative id). Persisted tags keep
+      // their canonical DB color; the backend ignores any provided color
+      // when the tag already exists.
+      color: t.id < 0 ? t.color : undefined,
+    }));
+    if (tagInputs.some((t) => t.name === "inactive")) {
       setError('"Inactive" is a reserved tag and cannot be used');
       return;
     }
@@ -144,7 +149,7 @@ export function AliasFormModal({
           serviceName: serviceName.trim(),
           url: url.trim(),
           description: description.trim(),
-          tags: parsedTags,
+          tags: tagInputs,
         };
         await api.updateAlias(alias.id, input);
       } else {
@@ -155,7 +160,7 @@ export function AliasFormModal({
           serviceName: serviceName.trim() || undefined,
           url: url.trim() || undefined,
           description: description.trim() || undefined,
-          tags: parsedTags,
+          tags: tagInputs,
         };
         await api.createAlias(input);
         setPrefix("");
@@ -163,7 +168,7 @@ export function AliasFormModal({
         setServiceName("");
         setUrl("");
         setDescription("");
-        setTags("");
+        setSelectedTags([]);
       }
       onSaved();
       onClose();
@@ -324,14 +329,10 @@ export function AliasFormModal({
             <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Tags
             </label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="shopping, newsletter, work..."
-              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+            <TagInput
+              value={selectedTags}
+              onChange={setSelectedTags}
             />
-            <p className="mt-1.5 text-xs text-zinc-400">Separate tags with commas</p>
           </div>
 
           {/* Active Toggle */}

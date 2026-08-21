@@ -1,3 +1,5 @@
+import type { Tag } from "./tag.js";
+
 export interface Alias {
   id: string;
   email: string;
@@ -10,11 +12,19 @@ export interface Alias {
   favicon?: string;
   tint?: string;
   description?: string;
-  tags: string[];
+  tags: Tag[];
   active: boolean;
   createdAt: string;
   updatedAt: string;
   lastSyncAt?: string;
+}
+
+export interface AliasTagInput {
+  name: string;
+  /** Optional hex color (#rrggbb). Sent for local drafts so the chip preview
+   *  matches the stored color on save. Ignored for tags that already exist
+   *  in the database — their canonical color wins. */
+  color?: string;
 }
 
 export interface CreateAliasInput {
@@ -24,7 +34,7 @@ export interface CreateAliasInput {
   serviceName?: string;
   url?: string;
   description?: string;
-  tags?: string[];
+  tags?: AliasTagInput[];
 }
 
 export interface UpdateAliasInput {
@@ -33,7 +43,7 @@ export interface UpdateAliasInput {
   serviceName?: string;
   url?: string;
   description?: string;
-  tags?: string[];
+  tags?: AliasTagInput[];
   active?: boolean;
 }
 

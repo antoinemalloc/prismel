@@ -28,10 +28,23 @@ Contraintes :
 
 Monorepo npm workspaces (backend + frontend). Voir README pour le détail.
 
-- `backend/src/` : `modules/aliases/`, `modules/settings/`, `providers/ovh/` + `registry.ts`, `db/` (schema + migrations), `types/`, `schemas/`, `validators/`, `middleware/`, `lib/`
-- `frontend/src/` : `features/aliases/`, `features/settings/`, `components/`, `types/` (mirror des types backend), `lib/`
+- `backend/src/` : `modules/aliases/`, `modules/tags/`, `modules/settings/`, `providers/ovh/` + `registry.ts`, `db/` (schema + migrations), `types/`, `schemas/`, `validators/`, `middleware/`, `lib/`
+- `frontend/src/` : `features/aliases/`, `features/tags/`, `features/settings/`, `components/`, `types/` (mirror des types backend), `lib/`
 - `data/` : SQLite (gitignored)
 - `.github/workflows/ci.yml` : pipeline CI
+
+## Tags
+
+Métadonnée locale normalisée. Trois tables : `tags(id, name UNIQUE, color, created_at)`, `alias_tags(alias_id, tag_id)` (PK composite, FK CASCADE vers les deux côtés), `aliases.tags` colonne JSON supprimée.
+
+- API contrat : `Alias.tags: Tag[]` (résolu via JOIN à la lecture, jamais présent en payload d'écriture). Create/Update reçoivent `tags?: string[]` (noms) — backend résout via `tagService.resolveNames`.
+- Normalisation : `lowercase + trim + dedup`. Appliquée à la fois par le schema Zod (`backend/src/schemas/alias.schema.ts`) et par le service.
+- Couleurs : stockées en hex `#rrggbb`. Génération initiale par `randomPastel()` (`backend/src/lib/color.ts`) — HSL(h, 70%, 80%) figé à la création. Le color picker (`<input type="color">`) renvoie/acccepte du hex uniquement.
+- Création : auto-création à la soumission d'alias via `tagService.getOrCreateByName`. Le modal de gestion permet aussi la création explicite.
+- Suppression : cascade via FK `ON DELETE CASCADE` sur `alias_tags.tag_id`. Confirmation UI côté modal si `usageCount > 0`.
+- Réservé : `"inactive"` reste bloqué côté frontend uniquement (AliasFormModal).
+- Routes : `GET/POST/PATCH/DELETE /api/tags`, `GET /api/tags/search?q=`.
+- Frontend : `TagChip` (rendu inline style), `TagInput` (autocomplete + chips + bouton gear), `TagManagementModal` (CRUD + color picker). Trois points d'entrée : bouton gear du TagInput, KPI "Tags" cliquable dans AliasListPage, carte "Tags" dans Settings.
 
 ## OVH
 
