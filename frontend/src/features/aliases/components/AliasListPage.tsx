@@ -209,7 +209,7 @@ export function AliasListPage() {
   const [aliasToEdit, setAliasToEdit] = useState<Alias | null>(null);
   const [formModalVisible, setFormModalVisible] = useState(true);
   const [tagModalOpen, setTagModalOpen] = useState(false);
-  const [sortKey, setSortKey] = useState<keyof Alias | null>("createdAt");
+  const [sortKey, setSortKey] = useState<keyof Alias | null>("updatedAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(50);
