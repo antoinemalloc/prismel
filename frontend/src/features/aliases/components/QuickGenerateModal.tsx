@@ -130,6 +130,7 @@ export function QuickGenerateModal({ open, onClose, onCreated }: QuickGenerateMo
             </label>
             <input
               type="text"
+              autoCapitalize="sentences"
               value={serviceName}
               onChange={(e) => setServiceName(e.target.value)}
               placeholder="e.g. Shopping, Newsletter..."

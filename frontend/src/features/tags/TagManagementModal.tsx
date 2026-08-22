@@ -134,6 +134,9 @@ export function TagManagementModal({
             <div className="flex items-center gap-2">
               <input
                 type="text"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => {
@@ -189,6 +192,9 @@ export function TagManagementModal({
                     </label>
                     <input
                       type="text"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                       defaultValue={tag.name}
                       key={`${tag.id}-${tag.name}`}
                       onBlur={(e) => handleNameChange(tag, e.target.value)}

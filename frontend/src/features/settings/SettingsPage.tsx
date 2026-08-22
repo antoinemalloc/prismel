@@ -211,7 +211,11 @@ export function SettingsPage() {
               {domainPairs.map((pair, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <input
-                    type="text"
+                    type="url"
+                    inputMode="url"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     value={pair.domain}
                     onChange={(e) => {
                       const next = [...domainPairs];
@@ -400,6 +404,9 @@ export function SettingsPage() {
                 One email address per line. These appear as suggestions in the redirect field.
               </p>
               <textarea
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 value={redirectTargets}
                 onChange={(e) => setRedirectTargets(e.target.value)}
                 placeholder={"user@example.com\nother@domain.com"}

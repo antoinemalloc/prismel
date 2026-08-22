@@ -165,6 +165,9 @@ export function TagInput({
           <input
             ref={inputRef}
             type="text"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);

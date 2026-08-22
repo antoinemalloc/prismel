@@ -15,7 +15,11 @@ export function OvhCredentialForm({ settings, onChange }: OvhCredentialFormProps
       <div>
         <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Endpoint</label>
         <input
-          type="text"
+          type="url"
+          inputMode="url"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           value={settings.ovh_endpoint || ""}
           onChange={(e) => onChange("ovh_endpoint", e.target.value)}
           placeholder="eu.api.ovh.com"
@@ -28,6 +32,9 @@ export function OvhCredentialForm({ settings, onChange }: OvhCredentialFormProps
           <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             value={settings.ovh_application_key || ""}
             onChange={(e) => onChange("ovh_application_key", e.target.value)}
             placeholder="d57d46..."

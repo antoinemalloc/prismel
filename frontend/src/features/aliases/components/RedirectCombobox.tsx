@@ -75,6 +75,10 @@ export function RedirectCombobox({ value, onChange, targets, placeholder }: Redi
         <input
           ref={inputRef}
           type="email"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           value={value}
           onChange={(e) => {
             onChange(e.target.value);

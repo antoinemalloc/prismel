@@ -232,6 +232,10 @@ export function AliasFormModal({
                   <div className="relative flex-1">
                     <input
                       type="text"
+                      inputMode="text"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                       value={prefix}
                       onChange={(e) => setPrefix(e.target.value)}
                       placeholder="alias-name"
@@ -280,6 +284,7 @@ export function AliasFormModal({
             </label>
             <input
               type="text"
+              autoCapitalize="sentences"
               value={serviceName}
               onChange={(e) => setServiceName(e.target.value)}
               placeholder="e.g. Newsletter"
@@ -293,7 +298,11 @@ export function AliasFormModal({
               Website URL
             </label>
             <input
-              type="text"
+              type="url"
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={url}
               onChange={(e) => {
                 setUrl(e.target.value);
@@ -316,6 +325,7 @@ export function AliasFormModal({
               Description
             </label>
             <textarea
+              autoCapitalize="sentences"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What is this alias for?"
