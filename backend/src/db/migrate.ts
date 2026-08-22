@@ -81,23 +81,31 @@ const stillHasTagsColumn = (sqlite.prepare("PRAGMA table_info(aliases)").all() a
 if (stillHasTagsColumn) {
   const now = new Date().toISOString();
 
+  // DISTINCT on the lowercased value: legacy JSON may contain mixed-case
+  // duplicates (e.g. ["Github", "github"]) that must collapse to one row.
   const distinctNames = sqlite
     .prepare(
-      `SELECT DISTINCT je.value AS name
+      `SELECT DISTINCT lower(je.value) AS name
        FROM aliases, json_each(aliases.tags) je
        WHERE je.value IS NOT NULL AND je.value != ''`,
     )
     .all() as { name: string }[];
 
   const { randomPastel } = await import("../lib/color.js");
+  // INSERT OR IGNORE makes the backfill idempotent — a previous partial
+  // migration may have left some tags in place.
   const insertTag = sqlite.prepare(
-    "INSERT INTO tags (name, color, created_at) VALUES (?, ?, ?)",
+    "INSERT OR IGNORE INTO tags (name, color, created_at) VALUES (?, ?, ?)",
   );
+  const selectTagId = sqlite.prepare("SELECT id FROM tags WHERE name = ?");
   const tagIdByName = new Map<string, number>();
   for (const { name } of distinctNames) {
-    const normalized = name.toLowerCase();
-    const result = insertTag.run(normalized, randomPastel(), now);
-    tagIdByName.set(normalized, Number(result.lastInsertRowid));
+    // Defensive dedupe — SQL lower() should already collapse, but guard
+    // against any other path that re-introduces collisions.
+    if (tagIdByName.has(name)) continue;
+    insertTag.run(name, randomPastel(), now);
+    const row = selectTagId.get(name) as { id: number } | undefined;
+    if (row) tagIdByName.set(name, row.id);
   }
 
   const aliasRows = sqlite
